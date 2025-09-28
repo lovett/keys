@@ -1,0 +1,26 @@
+{{ define "header" }}
+<header>
+    <h1>Keys</h1>
+
+    <form action="/edit">
+        <button type="submit"><svg class="icon"><use xlink:href="#icon-edit"></use></svg> Edit</button>
+    </form>
+</header>
+
+{{ end }}
+
+{{ define "main" }}
+<div id="status"></div>
+<main>
+    <ul id="keys">
+        {{range .Keys }}
+        <li>
+            <a class="key" data-keypress="{{ .Name }}" href="/{{ .Name }}" title="{{ .Note }}">
+                <span class="name">{{ .Name }}</span>
+                <span class="label">{{ .Label }}</span>
+            </a>
+        </li>
+        {{- end  -}}
+    </ul>
+</main>
+{{ end }}

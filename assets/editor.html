@@ -1,0 +1,23 @@
+{{ define "header" }}
+<header>
+    <h1>Key Editor</h1>
+
+    <a id="cancel" href="/">
+        <svg class="icon"><use xlink:href="#icon-arrow-left"></use></svg>
+        Cancel
+    </a>
+
+    <button id="save">
+        <svg class="icon"><use xlink:href="#icon-save"></use></svg>
+        Save
+    </button>
+</header>
+{{ end }}
+
+{{ define "main" }}
+<main class="editor">
+    <form method="post" action="/edit">
+        <textarea name="content" autofocus>{{ printf "%s" .RawContent }}</textarea>
+    </form>
+</main>
+{{ end }}

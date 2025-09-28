@@ -1,0 +1,278 @@
+:root {
+    --text: #000505;
+    --hover: #ACBED7;
+}
+
+a {
+    color: #044B7F;
+    text-decoration: none;
+}
+
+a span {
+    pointer-events: none;
+}
+
+body {
+    color: var(--text);
+}
+
+button {
+    text-transform: lowercase;
+    font-variant-caps: small-caps;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: .85em;
+    padding: 0.5em 0.5em;
+    border-radius: .25em;
+    border: 0;
+    background-color: #fff;
+    cursor: pointer;
+    color: var(--text);
+}
+
+button:hover, button:active {
+    background-color: var(--hover);
+}
+
+button .icon {
+    margin-bottom: -2px;
+    margin-right: 5px;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    box-sizing: border-box;
+    width: 100%;
+    display: flex;
+    flex-flow: row wrap;
+    gap: 1em;
+    background-color: #5D5D81;
+    color: #fff;
+    padding: 0.4em 0.75em;
+    align-items: start;
+    align-items: center;
+}
+
+header a {
+    color: inherit;
+    margin-right: 3em;
+}
+
+header h1 {
+    flex-grow: 1;
+    font-size: inherit;
+    margin: 0;
+}
+
+#status {
+    padding: 0.75em;
+    white-space: pre;
+    font-family: monospace;
+    margin-bottom: 1em;
+}
+
+#status:empty {
+    margin-bottom: 0;
+}
+
+#status.success {
+    background-color: #A2E3C4;
+}
+
+#status.fail {
+    background-color: #FFA987;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    line-height: 1.4;
+    font-family: system-ui, sans-serif;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    background-color: #fff;
+}
+
+main {
+    padding: 0 0.75em;
+}
+
+main.editor {
+    column-width: inherit;
+    display: flex;
+}
+
+section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    margin-bottom: 1em;
+}
+
+section h1 {
+    font-size: inherit;
+    padding: 0;
+    line-height: 1.5;
+    margin: 0 0 .5em;
+}
+
+section h1 a {
+    color: currentColor;
+    display: block;
+    border-bottom: 1px solid #cccccc;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+#cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+}
+
+#cancel .icon {
+    margin-top: .1em;
+}
+
+#inventory {
+    display: flex;
+    gap: 1em;
+    align-items: center;
+    font-variant-caps: small-caps;
+}
+
+#inventory select {
+    font-size: inherit;
+    font-variant-caps: small-caps;
+    padding: 0.25em 0.5em;
+}
+
+#keys {
+    display: flex;
+    gap: 2em;
+    padding-bottom: 0.5em;
+}
+
+#keys .key {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    align-content: space-between;
+    width: 12em;
+    height: 8em;
+    background-color: #BFCDE0;
+    border-radius: .75em;
+    box-shadow: 4px 4px 2px 0 #333;
+    color: inherit;
+    padding: 0.75em;
+    box-sizing: border-box;
+}
+
+#keys .key:hover {
+    background-color: var(--hover);
+}
+
+#keys .key:active {
+    box-shadow: 1px 1px 0 0 #333;
+}
+
+#keys .key .name {
+    font-weight: bold;
+    font-size: 3em;
+    margin-top: -0.25em;
+}
+
+#keys .key .label {
+    text-align: right;
+    padding-right: 0.25em;
+    padding-bottom: 0.25em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.editor form {
+    width: 100%;
+}
+
+.editor textarea {
+    font-size: inherit;
+    font-family: monospace;
+    padding: 0.5em;
+    box-sizing: border-box;
+    width: 100%;
+    height: calc(100vh - 6.75em);
+}
+
+.focus-candidate {
+    outline: 0;
+    background-color: #044B7F;
+    color: #fff;
+    box-shadow: none;
+    text-decoration: none;
+    padding: .25em;
+}
+
+.hash-focus-candidate:focus {
+    outline: 0;
+    background-color: #044B7F;
+    color: #fff;
+    border-bottom-color: transparent;
+    text-decoration: none;
+    padding: .25em;
+}
+
+.hidden {
+    display: none;
+}
+
+.icon {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    vertical-align: middle;
+    pointer-events: none;
+}
+
+@media (min-width: 576px) {
+    main {
+    }
+}
+
+@media (min-width: 768px) {
+}
+
+@media (min-width: 1280px) {
+    main {
+    }
+}
+
+@media (min-width: 1440px) {
+    body {
+        line-height: 1.2;
+        font-size: 18px;
+    }
+
+    main {
+        gap: 6em;
+    }
+
+    button {
+        font-size: 1em;
+    }
+}
