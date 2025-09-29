@@ -28,12 +28,24 @@ window.addEventListener('DOMContentLoaded',  () => {
     }
 
     window.addEventListener('keyup', (e) => {
+        const formTags = ['INPUT', 'SELECT', 'TEXTAREA'];
+
+        if (formTags.indexOf(e.target.nodeName) > -1) {
+            return;
+        }
+
         if (e.key === 'Escape') {
             const el = document.getElementById("status");
-            if (!el) return;
-            el.innerHTML = '';
-            el.className = '';
+            if (el) {
+                el.innerHTML = '';
+                el.className = '';
+            }
+            return;
         }
+
+        const selector = `a.key[data-keypress=${e.key}]`;
+        const key = document.querySelector(selector);
+        if (key) key.click();
     });
 
     window.addEventListener('click', (e) => {
