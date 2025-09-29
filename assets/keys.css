@@ -226,7 +226,8 @@ ul {
     padding: 0.5em;
     box-sizing: border-box;
     width: 100%;
-    height: calc(100vh - 6.75em);
+    margin-top: 2em;
+    height: calc(100vh - 7em);
 }
 
 .focus-candidate {
