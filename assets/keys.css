@@ -71,6 +71,11 @@ header h1 {
     white-space: pre;
     font-family: monospace;
     margin-bottom: 1em;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1em;
+
 }
 
 #status:empty {
@@ -83,6 +88,11 @@ header h1 {
 
 #status.fail {
     background-color: #FFA987;
+}
+
+#status .icon {
+    width: 2em;
+    height: 2em;
 }
 
 html {
