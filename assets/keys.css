@@ -90,9 +90,17 @@ header h1 {
     background-color: #FFA987;
 }
 
+#status.start {
+    background-color: lemonchiffon;
+}
+
 #status .icon {
     width: 2em;
     height: 2em;
+}
+
+#status a {
+    color: inherit;
 }
 
 html {

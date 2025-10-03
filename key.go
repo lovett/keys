@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"log"
 	"os/exec"
 	"strings"
 	"time"
@@ -13,15 +14,16 @@ import (
 type Key struct {
 	Name    string
 	Label   string
-	Command []string
+	Command string
 	Note    string
 }
 
 func NewKeyFromSection(s *ini.Section) *Key {
 	k := &Key{
-		Name:  s.Name(),
-		Label: s.Key("label").String(),
-		Note:  s.Key("note").String(),
+		Name:    s.Name(),
+		Label:   s.Key("label").String(),
+		Note:    s.Key("note").String(),
+		Command: s.Key("command").String(),
 	}
 
 	if k.Name == "" {
@@ -32,34 +34,29 @@ func NewKeyFromSection(s *ini.Section) *Key {
 		return nil
 	}
 
-	command := s.Key("command").String()
-	if strings.HasPrefix(command, "get") {
-		// HTTP GET
-	} else if strings.HasPrefix(command, "post") {
-		// HTTP POST
-	} else {
-		k.Command = strings.Split(command, " ")
+	if k.Command == "" {
+		return nil
 	}
 
 	return k
 }
 
 func (k *Key) RunCommand() ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	log.Printf("Running command: %s", k.Command)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var cmd *exec.Cmd
-	switch len(k.Command) {
-	case 0:
-		cmd = nil
-	case 1:
-		cmd = exec.CommandContext(ctx, k.Command[0])
-	default:
-		cmd = exec.CommandContext(ctx, k.Command[0], k.Command[1:]...)
-	}
+	commandParts := strings.Split(k.Command, " ")
 
-	if cmd == nil {
+	var cmd *exec.Cmd
+
+	switch len(commandParts) {
+	case 0:
 		return nil, errors.New("Command not specified")
+	case 1:
+		cmd = exec.CommandContext(ctx, commandParts[0])
+	default:
+		cmd = exec.CommandContext(ctx, commandParts[0], commandParts[1:]...)
 	}
 
 	return cmd.Output()

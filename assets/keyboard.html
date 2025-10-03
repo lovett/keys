@@ -13,9 +13,9 @@
 <div id="status"></div>
 <main>
     <ul id="keys">
-        {{range .Keys }}
+        {{range .Keymap.Keys }}
         <li>
-            <a class="key" data-keypress="{{ .Name }}" href="/{{ .Name }}" title="{{ .Note }}">
+            <a class="key" data-keypress="{{ .Name }}" href="{{ $.RelativeTriggerUrl .Name }}" title="{{ .Note }}">
                 <span class="name">{{ .Name }}</span>
                 <span class="label">{{ .Label }}</span>
             </a>

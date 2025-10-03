@@ -17,7 +17,7 @@
 {{ define "main" }}
 <main class="editor">
     <form method="post" action="/edit">
-        <textarea name="content" autofocus>{{ printf "%s" .RawContent }}</textarea>
+        <textarea name="content" autofocus>{{ printf "%s" .Raw }}</textarea>
     </form>
 </main>
 {{ end }}
