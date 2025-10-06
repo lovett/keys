@@ -14,35 +14,35 @@ type Keymap struct {
 }
 
 func NewKeymap(filename string) *Keymap {
-	c := Keymap{
+	k := Keymap{
 		Filename: filename,
 	}
 
-	c.Parse()
+	k.Parse()
 
-	return &c
+	return &k
 }
 
 func (k *Keymap) Reload() {
 	k.Parse()
 }
 
-func (c *Keymap) Parse() error {
+func (k *Keymap) Parse() error {
 	var err error
 
 	options := ini.LoadOptions{
 		SkipUnrecognizableLines: true,
 	}
 
-	if _, statErr := os.Stat(c.Filename); os.IsNotExist(statErr) {
+	if _, statErr := os.Stat(k.Filename); os.IsNotExist(statErr) {
 		skeleton, err := ReadAsset("assets/skeleton.ini")
 		if err != nil {
 			return err
 		}
 
-		c.Content, err = ini.LoadSources(options, skeleton.Bytes)
+		k.Content, err = ini.LoadSources(options, skeleton.Bytes)
 	} else {
-		c.Content, err = ini.LoadSources(options, c.Filename)
+		k.Content, err = ini.LoadSources(options, k.Filename)
 	}
 
 	if err != nil {
@@ -52,7 +52,7 @@ func (c *Keymap) Parse() error {
 	// Usage is read-only, so (maybe?) speed up read operations.
 	//
 	// See https://ini.unknwon.io/docs/faqs
-	c.Content.BlockMode = false
+	k.Content.BlockMode = false
 
 	return nil
 }
@@ -103,9 +103,9 @@ func (k *Keymap) NewKey(keyName string) *Key {
 
 }
 
-func (c *Keymap) Keys() func(yield func(*Key) bool) {
+func (k *Keymap) Keys() func(yield func(*Key) bool) {
 	return func(yield func(*Key) bool) {
-		for _, s := range c.Content.Sections() {
+		for _, s := range k.Content.Sections() {
 			if s.Name() == ini.DefaultSection {
 				continue
 			}
