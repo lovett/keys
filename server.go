@@ -126,6 +126,8 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.Config.Keymap.Reload()
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 

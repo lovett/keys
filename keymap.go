@@ -23,6 +23,10 @@ func NewKeymap(filename string) *Keymap {
 	return &c
 }
 
+func (k *Keymap) Reload() {
+	k.Parse()
+}
+
 func (c *Keymap) Parse() error {
 	var err error
 
