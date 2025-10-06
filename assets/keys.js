@@ -19,6 +19,9 @@ async function runTrigger(node) {
 }
 
 window.addEventListener('DOMContentLoaded',  () => {
+    let keyBuffer = '';
+    let keyTimer;
+
     const saveButton = document.getElementById('save');
     if (saveButton) {
         saveButton.addEventListener('click', () => {
@@ -28,8 +31,12 @@ window.addEventListener('DOMContentLoaded',  () => {
 
     window.addEventListener('keyup', (e) => {
         const formTags = ['INPUT', 'SELECT', 'TEXTAREA'];
-
+        const specials = ['Shift', 'Alt', 'Meta', 'Control', 'Backspace'];
         if (formTags.indexOf(e.target.nodeName) > -1) {
+            return;
+        }
+
+        if (specials.indexOf(e.key) > -1) {
             return;
         }
 
@@ -42,9 +49,13 @@ window.addEventListener('DOMContentLoaded',  () => {
             return;
         }
 
-        const selector = `a.key[data-keypress=${e.key}]`;
-        const key = document.querySelector(selector);
-        if (key) key.click();
+        keyBuffer += e.key;
+        clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            const key = document.querySelector(`a.key[data-keypress='${keyBuffer}']`);
+            if (key) key.click();
+            keyBuffer = '';
+        }, 250);
     });
 
     window.addEventListener('click', (e) => {
