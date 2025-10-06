@@ -180,18 +180,19 @@ ul {
 }
 
 #keys {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8em, 9em));
+    justify-content: center;
     gap: 2em;
     padding-bottom: 0.5em;
 }
 
 #keys .key {
     display: grid;
+    height: 7em;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr auto;
     align-content: space-between;
-    width: 12em;
-    height: 8em;
     background-color: #BFCDE0;
     border-radius: .75em;
     box-shadow: 4px 4px 2px 0 #333;
@@ -205,6 +206,7 @@ ul {
 }
 
 #keys .key:active {
+    transform: translate(2px, 2px);
     box-shadow: 1px 1px 0 0 #333;
 }
 
