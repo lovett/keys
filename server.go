@@ -152,6 +152,10 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 
+	if key.Toggle {
+		w.Header().Set("X-Keys-State", key.CurrentState())
+	}
+
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write(stdout)
 }

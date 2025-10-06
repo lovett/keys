@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os/exec"
 	"strings"
@@ -12,18 +13,26 @@ import (
 )
 
 type Key struct {
-	Name    string
-	Label   string
-	Command string
-	Note    string
+	Name         string
+	Label        string
+	Command      []string
+	States       []string
+	Note         string
+	Toggle       bool
+	CommandIndex int8
 }
 
 func NewKeyFromSection(s *ini.Section) *Key {
+	commands := s.Key("command").ValueWithShadows()
+	states := s.Key("state").ValueWithShadows()
+
 	k := &Key{
 		Name:    s.Name(),
-		Label:   s.Key("label").String(),
-		Note:    s.Key("note").String(),
-		Command: s.Key("command").String(),
+		Label:   s.Key("label").MustString(""),
+		Note:    s.Key("note").MustString(""),
+		Command: commands,
+		States:  states,
+		Toggle:  len(commands) > 1,
 	}
 
 	if k.Name == "" {
@@ -34,19 +43,47 @@ func NewKeyFromSection(s *ini.Section) *Key {
 		return nil
 	}
 
-	if k.Command == "" {
+	if k.CurrentCommand() == "" {
 		return nil
 	}
 
 	return k
 }
 
+func (k *Key) CurrentCommand() string {
+	return k.Command[k.CommandIndex]
+}
+
+func (k *Key) CurrentState() string {
+	if !k.Toggle {
+		return ""
+	}
+
+	return k.States[k.CommandIndex]
+}
+
+func (k *Key) updateCommandIndex() {
+	if !k.Toggle {
+		return
+	}
+
+	fmt.Println("was", k.CommandIndex)
+
+	if k.CommandIndex == 0 {
+		k.CommandIndex = 1
+	} else {
+		k.CommandIndex = 0
+	}
+
+	fmt.Println("now", k.CommandIndex)
+}
+
 func (k *Key) RunCommand() ([]byte, error) {
-	log.Printf("Running command: %s", k.Command)
+	log.Printf("Running command: %s", k.CurrentCommand())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	commandParts := strings.Split(k.Command, " ")
+	commandParts := strings.Split(k.CurrentCommand(), " ")
 
 	var cmd *exec.Cmd
 
@@ -58,6 +95,8 @@ func (k *Key) RunCommand() ([]byte, error) {
 	default:
 		cmd = exec.CommandContext(ctx, commandParts[0], commandParts[1:]...)
 	}
+
+	k.updateCommandIndex()
 
 	return cmd.Output()
 }

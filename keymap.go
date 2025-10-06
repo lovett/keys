@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 type Keymap struct {
 	Filename string
 	Content  *ini.File
+	KeyCache map[string]*Key
 }
 
 func NewKeymap(filename string) *Keymap {
@@ -19,12 +19,13 @@ func NewKeymap(filename string) *Keymap {
 	}
 
 	k.Parse()
-
+	k.KeyCache = make(map[string]*Key)
 	return &k
 }
 
 func (k *Keymap) Reload() {
 	k.Parse()
+	k.KeyCache = make(map[string]*Key)
 }
 
 func (k *Keymap) Parse() error {
@@ -32,6 +33,7 @@ func (k *Keymap) Parse() error {
 
 	options := ini.LoadOptions{
 		SkipUnrecognizableLines: true,
+		AllowShadows:            true,
 	}
 
 	if _, statErr := os.Stat(k.Filename); os.IsNotExist(statErr) {
@@ -91,15 +93,20 @@ func (k *Keymap) IsMappedKey(keyName string) bool {
 }
 
 func (k *Keymap) NewKey(keyName string) *Key {
+	if key, ok := k.KeyCache[keyName]; ok {
+		return key
+	}
+
 	sectionName := k.KeyNameToSectionName(keyName)
-	fmt.Println(sectionName)
 	section, err := k.Content.GetSection(sectionName)
 
 	if err != nil {
 		return nil
 	}
 
-	return NewKeyFromSection(section)
+	key := NewKeyFromSection(section)
+	k.KeyCache[keyName] = key
+	return key
 
 }
 
@@ -110,13 +117,13 @@ func (k *Keymap) Keys() func(yield func(*Key) bool) {
 				continue
 			}
 
-			k := NewKeyFromSection(s)
+			key := k.NewKey(s.Name())
 
-			if k == nil {
+			if key == nil {
 				continue
 			}
 
-			if !yield(k) {
+			if !yield(key) {
 				return
 			}
 		}

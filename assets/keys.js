@@ -2,11 +2,13 @@ async function runTrigger(node) {
     let eventName = 'trigger:fail';
     let result = 'Could not connect to server';
     let status = 0;
+    let state = '';
 
     try {
         const response = await fetch(node.href, {method: 'POST'});
         if (response.ok) {
             eventName = 'trigger:success';
+            state = response.headers.get("X-Keys-State");
         }
         result = await response.text()
         status = response.status;
@@ -15,6 +17,8 @@ async function runTrigger(node) {
             detail: {node, status, result }
         });
         window.dispatchEvent(event);
+
+        node.querySelector('.state').textContent = state;
     }
 }
 

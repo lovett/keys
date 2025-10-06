@@ -17,6 +17,7 @@
         <li>
             <a class="key" data-keypress="{{ .Name }}" href="{{ $.RelativeTriggerUrl .Name }}" title="{{ .Note }}">
                 <span class="name">{{ .Name }}</span>
+                <span class="state">{{ .CurrentState }}</span>
                 <span class="label">{{ .Label }}</span>
             </a>
         </li>
