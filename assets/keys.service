@@ -1,0 +1,13 @@
+[Unit]
+Description=Keys
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documents/Keys
+ExecStart=/usr/local/bin/keys
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

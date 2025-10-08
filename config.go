@@ -13,6 +13,7 @@ const (
 	NormalMode AppMode = iota
 	VersionMode
 	KeyboardListMode
+	SystemdSetupMode
 )
 
 type Config struct {
@@ -28,6 +29,7 @@ type Config struct {
 }
 
 func NewConfig(appVersion string) *Config {
+	systemd := flag.Bool("systemd", false, "Install a systemd user service.")
 	version := flag.Bool("version", false, "Application version")
 	keyboards := flag.Bool("keyboards", false, "Available keyboards")
 	inputs := flag.String("inputs", "browser,keyboard", "Where to listen for input")
@@ -43,6 +45,8 @@ func NewConfig(appVersion string) *Config {
 		appMode = VersionMode
 	} else if *keyboards {
 		appMode = KeyboardListMode
+	} else if *systemd {
+		appMode = SystemdSetupMode
 	} else {
 		appMode = NormalMode
 	}

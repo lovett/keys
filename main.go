@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 )
 
 const APP_VERSION = "dev"
@@ -13,12 +12,17 @@ func main() {
 	switch config.Mode {
 	case VersionMode:
 		fmt.Println(config.AppVersion)
-		os.Exit(0)
+		return
 	case KeyboardListMode:
 		for _, device := range ListDevices() {
 			fmt.Println(device)
 		}
-		os.Exit(0)
+		return
+	case SystemdSetupMode:
+		if err := InstallSystemdUserService(); err != nil {
+			fmt.Println(fmt.Errorf("Error: %s", err.Error()))
+		}
+		return
 	}
 
 	if config.UseKeyboard {
