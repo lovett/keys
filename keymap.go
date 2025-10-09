@@ -78,7 +78,8 @@ func (k *Keymap) Raw() []byte {
 }
 
 func (k *Keymap) KeyNameToSectionName(keyName string) string {
-	sectionName := strings.Replace(keyName, "KEY_", "", 1)
+	sectionName := strings.ReplaceAll(keyName, "KEY_", "")
+	sectionName = strings.ReplaceAll(sectionName, ",", "")
 	return strings.ToLower(sectionName)
 }
 

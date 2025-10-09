@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"os/user"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/holoplot/go-evdev"
 )
@@ -67,14 +69,12 @@ func ListDevices() []string {
 }
 
 func fire(c chan *evdev.InputEvent, config *Config) {
-	for event := range c {
-		keyName := evdev.CodeName(event.Type, event.Code)
-		if !config.Keymap.IsMappedKey(keyName) {
-			log.Printf("Ignoring unmapped key %s", keyName)
-			continue
-		}
+	var timer *time.Timer
 
-		url := config.PublicTriggerUrl(keyName)
+	keyBuffer := []string{}
+
+	action := func() {
+		url := config.PublicTriggerUrl(strings.Join(keyBuffer, ","))
 		resp, err := http.Post(url, "", nil)
 
 		if err != nil {
@@ -83,6 +83,16 @@ func fire(c chan *evdev.InputEvent, config *Config) {
 		}
 
 		log.Printf("POST to %s returned %d", url, resp.StatusCode)
+		keyBuffer = keyBuffer[:0]
+	}
+
+	for event := range c {
+		keyBuffer = append(keyBuffer, evdev.CodeName(event.Type, event.Code))
+
+		if timer != nil {
+			timer.Stop()
+		}
+		timer = time.AfterFunc(500*time.Millisecond, action)
 	}
 }
 
