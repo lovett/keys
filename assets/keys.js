@@ -5,7 +5,7 @@ async function runTrigger(node) {
     let state = '';
 
     try {
-        const response = await fetch(node.href, {method: 'POST'});
+        const response = await fetch(node.href, { method: 'POST' });
         if (response.ok) {
             eventName = 'trigger:success';
             state = response.headers.get("X-Keys-State");
@@ -14,7 +14,7 @@ async function runTrigger(node) {
         status = response.status;
     } finally {
         const event = new CustomEvent(eventName, {
-            detail: {node, status, result }
+            detail: { node, status, result }
         });
         window.dispatchEvent(event);
 
@@ -22,7 +22,7 @@ async function runTrigger(node) {
     }
 }
 
-window.addEventListener('DOMContentLoaded',  () => {
+window.addEventListener('DOMContentLoaded', () => {
     let keyBuffer = '';
     let keyTimer;
 
@@ -55,6 +55,19 @@ window.addEventListener('DOMContentLoaded',  () => {
 
         keyBuffer += e.key;
         clearTimeout(keyTimer);
+
+        const keyNodes = document.querySelectorAll(`a.key[data-keypress^='${keyBuffer}']`);
+        if (keyNodes.length === 0) {
+            keyBuffer = '';
+            return;
+        }
+
+        if (keyNodes.length === 1) {
+            keyNodes[0].click();
+            keyBufer = '';
+            return;
+        }
+
         keyTimer = setTimeout(() => {
             const key = document.querySelector(`a.key[data-keypress='${keyBuffer}']`);
             if (key) key.click();
@@ -79,7 +92,7 @@ window.addEventListener('DOMContentLoaded',  () => {
             e.preventDefault();
             window.dispatchEvent(new CustomEvent('trigger:start'));
 
-            // Give the start time to display and avoid flicker.
+            // Give the trigger:start message some time to display and not flicker.
             setTimeout(() => runTrigger(e.target), 500);
         }
     });

@@ -138,7 +138,12 @@ func fire(c chan *evdev.InputEvent, config *Config) {
 		if timer != nil {
 			timer.Stop()
 		}
-		timer = time.AfterFunc(500*time.Millisecond, action)
+
+		if config.Keymap.IsPrefix(keyBuffer) {
+			timer = time.AfterFunc(500*time.Millisecond, action)
+		} else {
+			action()
+		}
 	}
 }
 

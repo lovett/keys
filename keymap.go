@@ -113,6 +113,19 @@ func (k *Keymap) NewKey(keyName string) *Key {
 
 }
 
+func (k *Keymap) IsPrefix(keyBuffer []string) bool {
+	counter := 0
+	keys := k.KeyNameToSectionName(strings.Join(keyBuffer, ","))
+	for _, section := range k.Content.SectionStrings() {
+		if strings.HasPrefix(section, keys) {
+			counter++
+		}
+	}
+	fmt.Println(keys, counter)
+
+	return counter > 1
+}
+
 func (k *Keymap) Keys() func(yield func(*Key) bool) {
 	return func(yield func(*Key) bool) {
 		for _, s := range k.Content.Sections() {
