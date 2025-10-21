@@ -32,6 +32,7 @@ func StartServer(config *Config) {
 	http.HandleFunc("POST /edit", s.saveHandler)
 	http.HandleFunc("POST /trigger/{key}", s.triggerHandler)
 	log.Printf("Serving on %s and available from %s", config.ServerAddress, config.PublicUrl)
+	log.Printf("Config file is %s", config.Keymap.Filename)
 	log.Fatal(http.ListenAndServe(config.ServerAddress, nil))
 }
 

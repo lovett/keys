@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -29,11 +30,17 @@ type Config struct {
 }
 
 func NewConfig(appVersion string) *Config {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not determine config dir. Giving up.")
+		os.Exit(1)
+	}
+
 	systemd := flag.Bool("systemd", false, "Install a systemd user service")
 	version := flag.Bool("version", false, "Application version")
 	selectKeyboard := flag.Bool("select-keyboard", false, "Choose which keyboard to use for input")
 	inputs := flag.String("inputs", "browser,keyboard", "Where to listen for input")
-	config := flag.String("config", "keys.ini", "Configuration file")
+	config := flag.String("config", filepath.Join(configDir, "keys.ini"), "Configuration file")
 	port := flag.Int("port", 4004, "Server port")
 	publicUrl := flag.String("url", "http://localhost:4004", "Server URL")
 
