@@ -30,7 +30,14 @@ func StartKeyboardListener(config *Config) {
 	wg.Add(1)
 	go fire(c, config)
 
+	selectedKeyboard := config.Keymap.Content.Section("").Key("keyboard").String()
+
 	for _, device := range ListDevices() {
+		if selectedKeyboard != "" && device != selectedKeyboard {
+			log.Printf("Skipping %s\n", device)
+			continue
+		}
+
 		wg.Add(1)
 		go listen(device, c, &wg)
 	}
