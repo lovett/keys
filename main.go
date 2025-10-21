@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 )
 
 const APP_VERSION = "dev"
@@ -13,11 +14,23 @@ func main() {
 	case VersionMode:
 		fmt.Println(config.AppVersion)
 		return
-	case KeyboardListMode:
-		for _, device := range ListDevices() {
-			fmt.Println(device)
+	case KeyboardSelectMode:
+		keyboard, err := PromptForKeyboard()
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
 		}
-		return
+
+		err = config.Keymap.StoreKeyboard(*keyboard)
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+		fmt.Printf("Updated %s\n", config.Keymap.Filename)
+		os.Exit(0)
 	case SystemdSetupMode:
 		if err := InstallSystemdUserService(); err != nil {
 			fmt.Println(fmt.Errorf("Error: %s", err.Error()))

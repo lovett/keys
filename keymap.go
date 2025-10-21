@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -129,4 +131,29 @@ func (k *Keymap) Keys() func(yield func(*Key) bool) {
 			}
 		}
 	}
+}
+
+func (k *Keymap) StoreKeyboard(path string) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return errors.New("Failed to get current directory.")
+	}
+
+	// Not using system temp dir because rename across filesystems isn't supported
+	// and /tmp is probably on a separate partition.
+	tempFile, err := os.CreateTemp(cwd, "keys-temp*.ini")
+	if err != nil {
+		return errors.New("Failed to create temporary file.")
+	}
+	defer os.Remove(tempFile.Name())
+
+	k.Content.Section("").Key("keyboard").SetValue(path)
+
+	k.Content.SaveTo(tempFile.Name())
+
+	if err := os.Rename(tempFile.Name(), k.Filename); err != nil {
+		return fmt.Errorf("could not open file %q: %w", tempFile.Name(), err)
+	}
+
+	return nil
 }

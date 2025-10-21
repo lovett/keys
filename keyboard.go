@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -46,7 +51,7 @@ func userInGroup(groupName string) bool {
 
 	inputGroup, err := user.LookupGroup(groupName)
 	if err != nil {
-		log.Fatalf("Error getting %s group:", groupName, err)
+		log.Fatalf("Error getting %s group: %s", groupName, err)
 	}
 
 	for _, id := range userGroupIds {
@@ -56,6 +61,40 @@ func userInGroup(groupName string) bool {
 	}
 
 	return false
+}
+
+func PromptForKeyboard() (*string, error) {
+	devices := ListDevices()
+
+	if len(devices) == 0 {
+		return nil, errors.New("No keyboards found.")
+	}
+
+	if len(devices) == 1 {
+		fmt.Printf("Only one keyboard found (%s) so using that.\n", devices[0])
+		return &devices[0], nil
+	}
+
+	fmt.Println("\nSelect a keyboard by number:")
+	for i, device := range devices {
+		fmt.Printf("%2d. %s\n", i+1, device)
+	}
+
+	fmt.Println("")
+
+	reader := bufio.NewReader(os.Stdin)
+	answer, _ := reader.ReadString('\n')
+
+	index, err := strconv.Atoi(strings.TrimSuffix(answer, "\n"))
+	if err != nil {
+		return nil, errors.New("Invalid input.")
+	}
+
+	if index < 1 || index > len(devices) {
+		return nil, errors.New("Invalid selection.")
+	}
+
+	return &devices[index-1], nil
 }
 
 func ListDevices() []string {
