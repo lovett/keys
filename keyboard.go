@@ -35,19 +35,28 @@ func StartKeyboardListener(config *Config) {
 	wg.Add(1)
 	go fire(c, config)
 
-	selectedKeyboard := config.Keymap.Content.Section("").Key("keyboard").String()
+	designatedKeyboard := config.Keymap.Content.Section("").Key("keyboard").String()
 
+	keyboardFound := false
 	for _, device := range ListDevices() {
-		if selectedKeyboard != "" && device != selectedKeyboard {
+		if designatedKeyboard != "" && device != designatedKeyboard {
 			log.Printf("Skipping %s\n", device)
 			continue
 		}
 
+		keyboardFound = true
 		wg.Add(1)
-		go listen(device, c, &wg)
+		go listen(device, c, &wg, config)
 	}
 
-	wg.Wait()
+	if keyboardFound {
+		wg.Wait()
+	} else {
+		sleepDuration := time.Duration(10 * time.Second)
+		log.Printf("Keyboard not found. Will check again in %d seconds.\n", int(sleepDuration.Seconds()))
+		time.Sleep(sleepDuration)
+		StartKeyboardListener(config)
+	}
 }
 
 func userInGroup(groupName string) bool {
@@ -160,7 +169,7 @@ func fire(c chan *evdev.InputEvent, config *Config) {
 	}
 }
 
-func listen(path string, c chan *evdev.InputEvent, wg *sync.WaitGroup) {
+func listen(path string, c chan *evdev.InputEvent, wg *sync.WaitGroup, config *Config) {
 	defer wg.Done()
 
 	device, err := evdev.Open(path)
@@ -175,7 +184,9 @@ func listen(path string, c chan *evdev.InputEvent, wg *sync.WaitGroup) {
 	for {
 		event, err := device.ReadOne()
 		if err != nil {
-			log.Fatalf("failed to read event: %v", err)
+			log.Printf("Failed to read keyboard input: %s", err)
+			StartKeyboardListener(config)
+			return
 		}
 
 		if event.Type == evdev.EV_KEY && event.Value == 1 {
