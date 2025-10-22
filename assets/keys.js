@@ -34,13 +34,13 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     window.addEventListener('keyup', (e) => {
-        const formTags = ['INPUT', 'SELECT', 'TEXTAREA'];
-        const specials = ['Shift', 'Alt', 'Meta', 'Control', 'Backspace'];
-        if (formTags.indexOf(e.target.nodeName) > -1) {
+        if (e.ctrlKey || e.shiftKey || e.altKey) return;
+
+        if (['INPUT', 'SELECT', 'TEXTAREA'].indexOf(e.target.nodeName) > -1) {
             return;
         }
 
-        if (specials.indexOf(e.key) > -1) {
+        if (['Shift', 'Alt', 'Meta', 'Control', 'Backspace'].indexOf(e.key) > -1) {
             return;
         }
 
