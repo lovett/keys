@@ -62,7 +62,7 @@ window.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (keyNodes.length === 1) {
+        if (keyNodes.length === 1 && keyNodes[0].dataset.keypress === keyBuffer) {
             keyNodes[0].click();
             keyBuffer = '';
             return;
