@@ -64,7 +64,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (keyNodes.length === 1) {
             keyNodes[0].click();
-            keyBufer = '';
+            keyBuffer = '';
             return;
         }
 
@@ -97,12 +97,11 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    window.addEventListener('trigger:start', (e) => {
+    window.addEventListener('trigger:start', () => {
         setStatus('Running…', 'start');
     });
 
     window.addEventListener('trigger:success', (e) => {
-        const node = e.detail.node;
         const message = e.detail.result ? e.detail.result : 'Done!';
         setStatus(message, 'success');
     });
