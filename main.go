@@ -14,6 +14,9 @@ func main() {
 	case VersionMode:
 		fmt.Println(config.AppVersion)
 		return
+	case KeyTestMode:
+		StartKeyTest(config)
+		return
 	case KeyboardSelectMode:
 		keyboard, err := PromptForKeyboard()
 

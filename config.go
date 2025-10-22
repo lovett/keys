@@ -15,6 +15,7 @@ const (
 	VersionMode
 	KeyboardSelectMode
 	SystemdSetupMode
+	KeyTestMode
 )
 
 type Config struct {
@@ -36,6 +37,7 @@ func NewConfig(appVersion string) *Config {
 		os.Exit(1)
 	}
 
+	keytest := flag.Bool("keytest", false, "Test mode to see the name of a pressed key")
 	systemd := flag.Bool("systemd", false, "Install a systemd user service")
 	version := flag.Bool("version", false, "Application version")
 	selectKeyboard := flag.Bool("select-keyboard", false, "Choose which keyboard to use for input")
@@ -54,6 +56,8 @@ func NewConfig(appVersion string) *Config {
 		appMode = KeyboardSelectMode
 	} else if *systemd {
 		appMode = SystemdSetupMode
+	} else if *keytest {
+		appMode = KeyTestMode
 	} else {
 		appMode = NormalMode
 	}

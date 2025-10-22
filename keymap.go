@@ -121,7 +121,6 @@ func (k *Keymap) IsPrefix(keyBuffer []string) bool {
 			counter++
 		}
 	}
-	fmt.Println(keys, counter)
 
 	return counter > 1
 }

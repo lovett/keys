@@ -17,6 +17,11 @@ import (
 	"github.com/holoplot/go-evdev"
 )
 
+func StartKeyTest(config *Config) {
+	log.Println("Running key test. Press a key to see its name.")
+	StartKeyboardListener(config)
+}
+
 func StartKeyboardListener(config *Config) {
 
 	if !userInGroup("input") {
@@ -116,20 +121,28 @@ func ListDevices() []string {
 
 func fire(c chan *evdev.InputEvent, config *Config) {
 	var timer *time.Timer
-
+	var action func()
 	keyBuffer := []string{}
 
-	action := func() {
-		url := config.PublicTriggerUrl(strings.Join(keyBuffer, ","))
-		resp, err := http.Post(url, "", nil)
-
-		if err != nil {
-			log.Printf("Error reading POST response:", err)
-			return
+	if config.Mode == KeyTestMode {
+		action = func() {
+			pressedKeys := config.Keymap.KeyNameToSectionName(keyBuffer[0])
+			log.Printf("Key pressed: %s\n", pressedKeys)
+			keyBuffer = keyBuffer[:0]
 		}
+	} else {
+		action = func() {
+			url := config.PublicTriggerUrl(strings.Join(keyBuffer, ","))
+			resp, err := http.Post(url, "", nil)
 
-		log.Printf("POST to %s returned %d", url, resp.StatusCode)
-		keyBuffer = keyBuffer[:0]
+			if err != nil {
+				log.Printf("Error reading POST response:", err)
+				return
+			}
+
+			log.Printf("POST to %s returned %d", url, resp.StatusCode)
+			keyBuffer = keyBuffer[:0]
+		}
 	}
 
 	for event := range c {
