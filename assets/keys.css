@@ -1,6 +1,5 @@
 :root {
     --text: #000505;
-    --hover: #ACBED7;
 }
 
 a {
@@ -32,7 +31,7 @@ button {
 }
 
 button:hover, button:active {
-    background-color: var(--hover);
+    background-color: #ccc;
 }
 
 button .icon {
@@ -180,29 +179,34 @@ ul {
 }
 
 #keys {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(8em, 9em));
-    justify-content: center;
-    gap: 2em;
-    padding-bottom: 0.5em;
+    margin: auto;
+}
+
+#keys li {
+    display: inline-block;
+    padding: 0 1em 1em 0;
+}
+
+#keys li:last-of-type {
+    padding-right: 0;
 }
 
 #keys .key {
     display: grid;
-    height: 8em;
-    grid-template-columns: 1fr;
+    height: 6em;
+    grid-template-columns: 1fr auto;
     grid-template-rows: 1fr auto;
     align-content: space-between;
-    background-color: #BFCDE0;
+    background-color: #ddd;
     border-radius: .75em;
-    box-shadow: 4px 4px 2px 0 #333;
+    box-shadow: 2px 2px 2px 0 #333;
     color: inherit;
-    padding: 0.75em;
+    padding: 0.25em 0.75em;
     box-sizing: border-box;
 }
 
 #keys .key:hover {
-    background-color: var(--hover);
+    background-color: #ccc;
 }
 
 #keys .key:active {
@@ -210,26 +214,24 @@ ul {
     box-shadow: 1px 1px 0 0 #333;
 }
 
-#keys .key .name {
-    font-weight: bold;
-    font-size: 3em;
-    margin-top: -0.25em;
+#keys .key > * {
+    pointer-events: none;
 }
 
 #keys .key .label {
-    text-align: right;
-    padding-right: 0.25em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    grid-column: 1 / -1;
+    font-weight: bold;
+    font-size: 1.75em;
+}
+
+#keys .key .name {
+    justify-self: end;
 }
 
 #keys .key .state {
     text-transform: uppercase;
     font-size: .85em;
     font-style: italic;
-    margin-bottom: 1em;
-    text-align: right;
 }
 
 #keys .key .state:empty {

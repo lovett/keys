@@ -16,9 +16,9 @@
         {{range .Keymap.Keys }}
         <li>
             <a class="key" data-keypress="{{ .Name }}" href="{{ $.RelativeTriggerUrl .Name }}" title="{{ .Note }}">
-                <span class="name">{{ .Name }}</span>
-                <span class="state">{{ .CurrentState }}</span>
-                <span class="label">{{ .Label }}</span>
+                <div class="label">{{ .Label }}</div>
+                <div class="state">{{ .CurrentState }}</div>
+                <div class="name"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> {{ .Name }}</div>
             </a>
         </li>
         {{- end  -}}
