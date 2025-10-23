@@ -78,6 +78,7 @@ func (k *Key) updateCommandIndex() {
 
 func (k *Key) RunCommand() ([]byte, error) {
 	log.Printf("Running command: %s", k.CurrentCommand())
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

@@ -37,19 +37,18 @@ func StartKeyboardListener(config *Config) {
 
 	designatedKeyboard := config.Keymap.Content.Section("").Key("keyboard").String()
 
-	keyboardFound := false
 	for _, device := range ListDevices() {
 		if designatedKeyboard != "" && device != designatedKeyboard {
 			log.Printf("Skipping %s\n", device)
 			continue
 		}
 
-		keyboardFound = true
+		config.KeyboardFound = true
 		wg.Add(1)
 		go listen(device, c, &wg, config)
 	}
 
-	if keyboardFound {
+	if config.KeyboardFound {
 		wg.Wait()
 	} else {
 		sleepDuration := time.Duration(10 * time.Second)

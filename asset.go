@@ -5,7 +5,11 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"log"
 	"path/filepath"
+
+	"github.com/gopxl/beep"
+	"github.com/gopxl/beep/vorbis"
 )
 
 //go:embed assets/*
@@ -31,6 +35,10 @@ func HashAssets() error {
 		}
 
 		if filepath.Ext(path) == "html" {
+			return nil
+		}
+
+		if filepath.Ext(path) == "ogg" {
 			return nil
 		}
 
@@ -62,6 +70,29 @@ func ReadAsset(path string) (*Asset, error) {
 		Hash:     hashMap[path],
 		MimeType: mimeType(path),
 	}, nil
+}
+
+func SoundBuffer(path string) *Sound {
+	b, err := AssetFS.Open(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	streamer, format, err := vorbis.Decode(b)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buffer := beep.NewBuffer(format)
+	buffer.Append(streamer)
+	streamer.Close()
+
+	return &Sound{
+		Path:   path,
+		Format: format,
+		Buffer: *buffer,
+	}
 }
 
 func mimeType(path string) string {

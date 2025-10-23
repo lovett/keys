@@ -145,6 +145,7 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	stdout, err := key.RunCommand()
 
 	if err != nil {
+		PlayErrorSound(s.Config)
 		s.sendError(w, err.Error())
 		return
 	}
@@ -154,7 +155,10 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if key.Toggle {
+		PlayToggleSound(s.Config, key)
 		w.Header().Set("X-Keys-State", key.CurrentState())
+	} else {
+		PlayConfirmationSound(s.Config)
 	}
 
 	w.Header().Set("Content-Type", "text/plain")

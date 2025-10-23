@@ -17,6 +17,9 @@ func main() {
 	case KeyTestMode:
 		StartKeyTest(config)
 		return
+	case SoundTestMode:
+		StartSoundTest()
+		return
 	case KeyboardSelectMode:
 		keyboard, err := PromptForKeyboard()
 
@@ -46,6 +49,7 @@ func main() {
 	}
 
 	if config.UseServer {
+		LoadSounds()
 		StartServer(config)
 	}
 }

@@ -65,6 +65,20 @@ header h1 {
     margin: 0;
 }
 
+#config span {
+    padding-right: 2em;
+}
+
+#config .state {
+    font-variant: small-caps;
+}
+
+#config .icon {
+    width: 1.5em;
+    height: 1.5em;
+    padding-right: .25em;
+}
+
 #status {
     padding: 0.75em;
     white-space: pre;

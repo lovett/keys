@@ -16,6 +16,7 @@ const (
 	KeyboardSelectMode
 	SystemdSetupMode
 	KeyTestMode
+	SoundTestMode
 )
 
 type Config struct {
@@ -24,6 +25,7 @@ type Config struct {
 	SelectKeyboard bool
 	UseServer      bool
 	UseKeyboard    bool
+	KeyboardFound  bool
 	ServerAddress  string
 	PublicUrl      string
 	AppVersion     string
@@ -37,7 +39,8 @@ func NewConfig(appVersion string) *Config {
 		os.Exit(1)
 	}
 
-	keytest := flag.Bool("keytest", false, "Test mode to see the name of a pressed key")
+	soundTest := flag.Bool("soundtest", false, "Test mode to see if sound works")
+	keyTest := flag.Bool("keytest", false, "Test mode to see the name of a pressed key")
 	systemd := flag.Bool("systemd", false, "Install a systemd user service")
 	version := flag.Bool("version", false, "Application version")
 	selectKeyboard := flag.Bool("select-keyboard", false, "Choose which keyboard to use for input")
@@ -56,7 +59,9 @@ func NewConfig(appVersion string) *Config {
 		appMode = KeyboardSelectMode
 	} else if *systemd {
 		appMode = SystemdSetupMode
-	} else if *keytest {
+	} else if *soundTest {
+		appMode = SoundTestMode
+	} else if *keyTest {
 		appMode = KeyTestMode
 	} else {
 		appMode = NormalMode
@@ -79,6 +84,20 @@ func (c *Config) RelativeTriggerUrl(key string) string {
 
 func (c *Config) PublicTriggerUrl(key string) string {
 	return fmt.Sprintf("%s/trigger/%s", c.PublicUrl, key)
+}
+
+func (c *Config) SoundAllowed() bool {
+	key := "sound"
+	if !c.Keymap.Content.Section("").HasKey(key) {
+		return true
+	}
+
+	value, err := c.Keymap.Content.Section("").Key(key).Bool()
+	if err != nil {
+		return true
+	}
+
+	return value
 }
 
 func usage() {

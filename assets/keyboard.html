@@ -1,7 +1,10 @@
 {{ define "header" }}
 <header>
     <h1>Keys</h1>
-
+    <div id="config">
+        <span><svg class="icon"><use xlink:href="#icon-speaker"></use></svg> Sound <span class="state">{{ if .SoundAllowed }}on{{ else }}off{{ end }}</span></span>
+        <span><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> Keyboard <span class="state">{{ if .KeyboardFound }}on{{ else }}off{{ end }}</span></span>
+    </div>
     <form action="/edit">
         <button type="submit"><svg class="icon"><use xlink:href="#icon-edit"></use></svg> Edit</button>
     </form>
