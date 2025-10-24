@@ -52,7 +52,6 @@ func StartKeyboardListener(config *Config) {
 		wg.Wait()
 	} else {
 		sleepDuration := time.Duration(10 * time.Second)
-		log.Printf("Keyboard not found. Will check again in %d seconds.\n", int(sleepDuration.Seconds()))
 		time.Sleep(sleepDuration)
 		StartKeyboardListener(config)
 	}
