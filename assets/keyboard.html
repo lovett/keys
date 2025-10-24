@@ -1,3 +1,9 @@
+{{ define "edit-button" }}
+<form class="edit" action="/edit">
+    <button type="submit"><svg class="icon"><use xlink:href="#icon-edit"></use></svg> Edit</button>
+</form>
+{{ end }}
+
 {{ define "header" }}
 <header>
     <h1>Keys</h1>
@@ -5,9 +11,7 @@
         <span><svg class="icon"><use xlink:href="#icon-speaker"></use></svg> Sound <span class="state">{{ if .SoundAllowed }}on{{ else }}off{{ end }}</span></span>
         <span><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> Keyboard <span class="state">{{ if .KeyboardFound }}on{{ else }}off{{ end }}</span></span>
     </div>
-    <form action="/edit">
-        <button type="submit"><svg class="icon"><use xlink:href="#icon-edit"></use></svg> Edit</button>
-    </form>
+    {{ block "edit-button" . }}{{ end }}
 </header>
 
 {{ end }}
@@ -24,6 +28,12 @@
                 <div class="name"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> {{ .Name }}</div>
             </a>
         </li>
+        {{- else -}}
+
+        No keys defined. Edit the configuration to create some:
+
+        {{ block "edit-button" . }}{{ end }}
+
         {{- end  -}}
     </ul>
 </main>
