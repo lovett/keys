@@ -262,7 +262,7 @@ ul {
     box-sizing: border-box;
     width: 100%;
     margin-top: 2em;
-    height: calc(100vh - 7em);
+    height: calc(100dvh - 7em);
 }
 
 .focus-candidate {
