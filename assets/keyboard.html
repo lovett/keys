@@ -1,6 +1,6 @@
 {{ define "edit-button" }}
 <form class="edit" action="/edit">
-    <button type="submit"><svg class="icon"><use xlink:href="#icon-edit"></use></svg> Edit</button>
+    <button type="submit" class="icon-with-label"><svg class="icon"><use xlink:href="#icon-edit"></use></svg> <span class="label">Edit</span></button>
 </form>
 {{ end }}
 
@@ -8,10 +8,13 @@
 <header>
     <h1>Keys</h1>
     <div id="config">
-        <span><svg class="icon"><use xlink:href="#icon-speaker"></use></svg> Sound <span class="state">{{ if .SoundAllowed }}on{{ else }}off{{ end }}</span></span>
-        <span><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> Keyboard <span class="state">{{ if .KeyboardFound }}on{{ else }}off{{ end }}</span></span>
+        <span class="icon-with-label"><svg class="icon"><use xlink:href="#icon-speaker"></use></svg> Sound <span class="label">{{ if .SoundAllowed }}on{{ else }}off{{ end }}</span></span>
+        <span class="icon-with-label"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> Keyboard <span class="label">{{ if .KeyboardFound }}on{{ else }}off{{ end }}</span></span>
     </div>
-    {{ block "edit-button" . }}{{ end }}
+
+    <div class="actions">
+        {{ block "edit-button" . }}{{ end }}
+    </div>
 </header>
 
 {{ end }}
@@ -23,14 +26,14 @@
         {{range .Keymap.Keys }}
         <li>
             <a class="key" data-keypress="{{ .Name }}" href="{{ $.RelativeTriggerUrl .Name }}">
-                <div class="label">{{ .Label }}</div>
+                <div class="key-label">{{ .Label }}</div>
                 <div class="state">{{ .CurrentState }}</div>
-                <div class="name"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> {{ .Name }}</div>
+                <div class="name icon-with-label"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> <span class="label">{{ .Name }}</span></div>
             </a>
         </li>
         {{- else -}}
 
-        No keys defined. Edit the configuration to create some:
+        <p>No keys defined. Edit the configuration to create some:</p>
 
         {{ block "edit-button" . }}{{ end }}
 
