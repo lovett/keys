@@ -86,6 +86,10 @@ func (c *Config) PublicTriggerUrl(key string) string {
 	return fmt.Sprintf("%s/trigger/%s", c.PublicUrl, key)
 }
 
+func (c *Config) DesignatedKeyboard() string {
+	return c.Keymap.Content.Section("").Key("keyboard").String()
+}
+
 func (c *Config) SoundAllowed() bool {
 	key := "sound"
 	if !c.Keymap.Content.Section("").HasKey(key) {
