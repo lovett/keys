@@ -19,7 +19,7 @@ import (
 
 type EventPair struct {
 	Event *evdev.InputEvent
-	Path  *string
+	Path  string
 }
 
 func StartKeyTest(config *Config) {
@@ -38,11 +38,15 @@ func StartKeyboardListener(config *Config) {
 	c := make(chan *EventPair)
 
 	wg.Add(1)
-	go fire(c, config)
+	if config.Mode == KeyTestMode {
+		go testFire(c, config)
+	} else {
+		go fire(c, config)
+	}
 
 	for _, device := range ListDevices() {
 		if config.DesignatedKeyboard() != "" && device != config.DesignatedKeyboard() {
-			log.Printf("Skipping %s\n", device)
+			log.Printf("Skipping %s\n", deviceName(device))
 			continue
 		}
 
@@ -126,48 +130,52 @@ func ListDevices() []string {
 	}
 
 	return matches
+}
 
+func testFire(c chan *EventPair, config *Config) {
+	for pair := range c {
+		key := evdev.CodeName(pair.Event.Type, pair.Event.Code)
+		format := "\nKey pressed on %s: %s \n"
+		if config.DesignatedKeyboard() != "" && pair.Path == config.DesignatedKeyboard() {
+			format = format[1:]
+		}
+
+		fmt.Printf(
+			format,
+			deviceName(pair.Path),
+			config.Keymap.KeyNameToSectionName(key),
+		)
+	}
 }
 
 func fire(c chan *EventPair, config *Config) {
 	var timer *time.Timer
-	var devicePath string
-	var action func()
 	keyBuffer := []string{}
 
-	if config.Mode == KeyTestMode {
-		action = func() {
-			pressedKey := config.Keymap.KeyNameToSectionName(keyBuffer[0])
-			fmt.Printf("\nKey pressed on %s: %s \n", devicePath, pressedKey)
-			keyBuffer = keyBuffer[:0]
-		}
-	} else {
-		action = func() {
-			url := config.PublicTriggerUrl(strings.Join(keyBuffer, ","))
-			resp, err := http.Post(url, "", nil)
+	callback := func() {
+		url := config.PublicTriggerUrl(strings.Join(keyBuffer, ","))
+		resp, err := http.Post(url, "", nil)
 
-			if err != nil {
-				log.Print("Error reading POST response:", err)
-				return
-			}
-
-			log.Printf("POST to %s returned %d", url, resp.StatusCode)
-			keyBuffer = keyBuffer[:0]
+		if err != nil {
+			log.Print("Error reading POST response:", err)
+			return
 		}
+
+		log.Printf("POST to %s returned %d", url, resp.StatusCode)
+		keyBuffer = keyBuffer[:0]
 	}
 
-	for event := range c {
-		devicePath = filepath.Base(*event.Path)
-		keyBuffer = append(keyBuffer, evdev.CodeName(event.Event.Type, event.Event.Code))
+	for pair := range c {
+		keyBuffer = append(keyBuffer, evdev.CodeName(pair.Event.Type, pair.Event.Code))
 
 		if timer != nil {
 			timer.Stop()
 		}
 
 		if config.Keymap.IsPrefix(keyBuffer) {
-			timer = time.AfterFunc(500*time.Millisecond, action)
+			timer = time.AfterFunc(500*time.Millisecond, callback)
 		} else {
-			action()
+			callback()
 		}
 	}
 }
@@ -175,14 +183,24 @@ func fire(c chan *EventPair, config *Config) {
 func listen(path string, c chan *EventPair, wg *sync.WaitGroup, config *Config) {
 	defer wg.Done()
 
+	deviceName := deviceName(path)
 	device, err := evdev.Open(path)
 
 	if err != nil {
-		log.Fatalf("Failed to open device %s: %v", path, err)
+		log.Fatalf("Failed to open device %s: %v", deviceName, err)
 	}
 	defer device.Close()
 
-	log.Printf("Listening for keyboard events on %s\n", device.Path())
+	if path == config.DesignatedKeyboard() {
+		err = device.Grab()
+		if err != nil {
+			log.Fatalf("Failed to grab device %s: %v", deviceName, err)
+		}
+		log.Printf("Grabbed %s for exclusive access\n", deviceName)
+		defer device.Ungrab()
+	} else {
+		log.Printf("Listening for keyboard events on %s\n", deviceName)
+	}
 
 	for {
 		event, err := device.ReadOne()
@@ -193,7 +211,11 @@ func listen(path string, c chan *EventPair, wg *sync.WaitGroup, config *Config) 
 		}
 
 		if event.Type == evdev.EV_KEY && event.Value == 0 {
-			c <- &EventPair{event, &path}
+			c <- &EventPair{event, path}
 		}
 	}
+}
+
+func deviceName(path string) string {
+	return filepath.Base(path)
 }
