@@ -5,3 +5,6 @@ watch:
 
 build:
 	GOOS=linux GOARCH=amd64 go build
+
+setup:
+	sudo dnf install alsa-lib-devel
