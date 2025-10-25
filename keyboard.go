@@ -17,6 +17,11 @@ import (
 	"github.com/holoplot/go-evdev"
 )
 
+type EventPair struct {
+	Event *evdev.InputEvent
+	Path  *string
+}
+
 func StartKeyTest(config *Config) {
 	log.Println("Running key test. Press a key to see its name.")
 	StartKeyboardListener(config)
@@ -30,7 +35,7 @@ func StartKeyboardListener(config *Config) {
 
 	var wg sync.WaitGroup
 
-	c := make(chan *evdev.InputEvent)
+	c := make(chan *EventPair)
 
 	wg.Add(1)
 	go fire(c, config)
@@ -124,15 +129,16 @@ func ListDevices() []string {
 
 }
 
-func fire(c chan *evdev.InputEvent, config *Config) {
+func fire(c chan *EventPair, config *Config) {
 	var timer *time.Timer
+	var devicePath string
 	var action func()
 	keyBuffer := []string{}
 
 	if config.Mode == KeyTestMode {
 		action = func() {
-			pressedKeys := config.Keymap.KeyNameToSectionName(keyBuffer[0])
-			log.Printf("Key pressed: %s\n", pressedKeys)
+			pressedKey := config.Keymap.KeyNameToSectionName(keyBuffer[0])
+			fmt.Printf("\nKey pressed on %s: %s \n", devicePath, pressedKey)
 			keyBuffer = keyBuffer[:0]
 		}
 	} else {
@@ -141,7 +147,7 @@ func fire(c chan *evdev.InputEvent, config *Config) {
 			resp, err := http.Post(url, "", nil)
 
 			if err != nil {
-				log.Printf("Error reading POST response:", err)
+				log.Print("Error reading POST response:", err)
 				return
 			}
 
@@ -151,7 +157,8 @@ func fire(c chan *evdev.InputEvent, config *Config) {
 	}
 
 	for event := range c {
-		keyBuffer = append(keyBuffer, evdev.CodeName(event.Type, event.Code))
+		devicePath = filepath.Base(*event.Path)
+		keyBuffer = append(keyBuffer, evdev.CodeName(event.Event.Type, event.Event.Code))
 
 		if timer != nil {
 			timer.Stop()
@@ -165,7 +172,7 @@ func fire(c chan *evdev.InputEvent, config *Config) {
 	}
 }
 
-func listen(path string, c chan *evdev.InputEvent, wg *sync.WaitGroup, config *Config) {
+func listen(path string, c chan *EventPair, wg *sync.WaitGroup, config *Config) {
 	defer wg.Done()
 
 	device, err := evdev.Open(path)
@@ -185,8 +192,8 @@ func listen(path string, c chan *evdev.InputEvent, wg *sync.WaitGroup, config *C
 			return
 		}
 
-		if event.Type == evdev.EV_KEY && event.Value == 1 {
-			c <- event
+		if event.Type == evdev.EV_KEY && event.Value == 0 {
+			c <- &EventPair{event, &path}
 		}
 	}
 }
