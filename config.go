@@ -20,16 +20,14 @@ const (
 )
 
 type Config struct {
-	Mode           AppMode
-	ShowAppVersion bool
-	SelectKeyboard bool
-	UseServer      bool
-	UseKeyboard    bool
-	KeyboardFound  bool
-	ServerAddress  string
-	PublicUrl      string
-	AppVersion     string
-	Keymap         *Keymap
+	AppVersion    string
+	KeyboardFound bool
+	Keymap        *Keymap
+	Mode          AppMode
+	PublicUrl     string
+	ServerAddress string
+	UseKeyboard   bool
+	UseServer     bool
 }
 
 func NewConfig(appVersion string) *Config {
@@ -52,7 +50,7 @@ func NewConfig(appVersion string) *Config {
 	flag.Usage = usage
 	flag.Parse()
 
-	var appMode AppMode
+	appMode := NormalMode
 	if *version {
 		appMode = VersionMode
 	} else if *selectKeyboard {
@@ -63,18 +61,16 @@ func NewConfig(appVersion string) *Config {
 		appMode = SoundTestMode
 	} else if *keyTest {
 		appMode = KeyTestMode
-	} else {
-		appMode = NormalMode
 	}
 
 	return &Config{
-		Mode:          appMode,
-		UseServer:     strings.Contains(*inputs, "browser"),
-		UseKeyboard:   strings.Contains(*inputs, "keyboard"),
-		ServerAddress: fmt.Sprintf(":%d", *port),
-		Keymap:        NewKeymap(*config),
 		AppVersion:    appVersion,
+		Keymap:        NewKeymap(*config),
+		Mode:          appMode,
 		PublicUrl:     *publicUrl,
+		ServerAddress: fmt.Sprintf(":%d", *port),
+		UseKeyboard:   strings.Contains(*inputs, "keyboard"),
+		UseServer:     strings.Contains(*inputs, "browser"),
 	}
 }
 
