@@ -21,5 +21,44 @@
     <form method="post" action="/edit">
         <textarea name="content" autofocus>{{ printf "%s" .Raw }}</textarea>
     </form>
+
+    <div id="examples">
+        <h2>Examples</h2>
+
+        <details>
+            <summary>Single-press key</summary>
+            <pre>
+[h]
+label = hello
+command = echo Hello</pre>
+
+            <p>When the "h" key is pressed, run <code>echo Hello</code>.</p>
+        </details>
+
+        <details>
+            <summary>Multi-key sequence</summary>
+            <pre>
+[hw]
+label = hello2
+command = echo Hello world</pre>
+
+            <p>When the "h" and "w" keys are pressed in quick succession, run <code>echo Hello world</code>.</p>
+        </details>
+
+
+        <details>
+            <summary>Lock/unlock toggle</summary>
+            <pre>
+[l]
+label   = lock
+state   = unlocked
+command = lock
+state   = locked
+command = unlock</pre>
+            <p>The application provides special commands for enabling and disabling keyboard input.</p>
+            <p>When the "l" key is pressed, run <code>lock</code>. The state will change from unlocked to locked.</p>
+            <p>When pressed again, run <code>unlock</code> to return to the unlocked state.</p>
+        </details>
+    </div>
 </main>
 {{ end }}

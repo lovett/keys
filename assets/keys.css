@@ -31,6 +31,31 @@ button:hover, button:active {
     background-color: #68D89B;
 }
 
+code {
+    font-family: monospace;
+}
+
+details {
+    margin-bottom: 1em;
+}
+
+details p:last-of-type {
+    margin-bottom: 0;
+}
+
+details summary {
+    cursor: pointer;
+}
+
+details pre {
+    display: inline-block;
+    background-color: #ddd;
+    border-radius: .5em;
+    padding: 0.75em;
+    font-size: inherit;
+    margin-bottom: -0.25em;
+}
+
 header {
     position: sticky;
     top: 0;
@@ -91,6 +116,11 @@ header .actions {
     grid-area: actions;
 }
 
+h2 {
+    font-size: 1.25em;
+    margin: 0 0 0.5em 0;
+}
+
 #status {
     padding: 0.75em;
     white-space: pre;
@@ -149,11 +179,6 @@ body {
 
 main {
     padding: 0 0.75em;
-}
-
-main.editor {
-    column-width: inherit;
-    display: flex;
 }
 
 section {
@@ -257,8 +282,21 @@ ul {
     font-style: italic;
 }
 
+.editor {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1em;
+    align-items: start;
+    margin-top: 2em;
+}
+
+@media (min-width: 420px) {
+    .editor {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 .editor form {
-    width: 100%;
 }
 
 .editor textarea {
@@ -267,8 +305,7 @@ ul {
     padding: 0.5em;
     box-sizing: border-box;
     width: 100%;
-    margin-top: 2em;
-    height: calc(100dvh - 7em);
+    height: calc(100dvh - 12em);
 }
 
 .focus-candidate {
