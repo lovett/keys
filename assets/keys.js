@@ -1,156 +1,107 @@
-async function runTrigger(node) {
-    let eventName = 'trigger:fail';
-    let result = 'Could not connect to server';
-    let status = 0;
-    let state = '';
-    let locked = false;
+let keyBuffer = '';
+let keyTimer;
 
-    try {
-        const response = await fetch(node.href, { method: 'POST' });
-        if (response.ok) {
-            eventName = 'trigger:success';
-            state = response.headers.get("X-Keys-State");
-            locked = Boolean(parseInt(response.headers.get("X-Keys-Locked"), 10) || 0);
-        }
-        result = await response.text()
-        status = response.status;
-    } finally {
-        const event = new CustomEvent(eventName, {
-            detail: { node, status, result, locked }
-        });
-        window.dispatchEvent(event);
+window.addEventListener('click', (e) => {
+    if (e.target.nodeName !== 'A') return;
 
-        node.querySelector('.state').textContent = state;
+    if (e.target.classList.contains('close')) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('app:clear'));
+        return;
     }
-}
+
+    if (e.target.classList.contains('key')) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('app:start'));
+
+        // Give the start message some time to display and not flicker.
+        setTimeout(() => runTrigger(e.target), 500);
+        return;
+    }
+});
+
+window.addEventListener('keyup', (e) => {
+    if (e.ctrlKey || e.shiftKey || e.altKey) return;
+
+    if (['INPUT', 'SELECT', 'TEXTAREA'].indexOf(e.target.nodeName) > -1) return;
+
+    if (['Shift', 'Alt', 'Meta', 'Control', 'Backspace'].indexOf(e.key) > -1) return;
+
+    if (e.key === 'Escape') {
+        window.dispatchEvent(new CustomEvent('app:clear'));
+        return;
+    }
+
+    if (document.querySelector('#keys.locked')) {
+        window.dispatchEvent(new CustomEvent('app:locked'));
+        return;
+    }
+
+    keyBuffer += e.key;
+    clearTimeout(keyTimer);
+
+    const nodes = document.querySelectorAll(`a.key[data-keypress^='${keyBuffer}']`);
+    if (nodes.length === 0) {
+        keyBuffer = '';
+        return;
+    }
+
+    if (nodes.length === 1 && nodes[0].dataset.keypress === keyBuffer) {
+        nodes[0].click();
+        keyBuffer = '';
+        return;
+    }
+
+    keyTimer = setTimeout(() => {
+        const key = document.querySelector(`a.key[data-keypress='${keyBuffer}']`);
+        if (key) key.click();
+        keyBuffer = '';
+    }, 250);
+});
+
+window.addEventListener('app:clear', () => {
+    const el = document.getElementById("status");
+    if (!el) return;
+    el.replaceChildren();
+    el.className = '';
+});
+
+window.addEventListener('app:start', () => {
+    setStatus('Running…', 'start');
+});
+
+window.addEventListener('app:locked', () => {
+    setStatus('The keyboard is locked.', 'locked');
+});
+
+window.addEventListener('app:success', (e) => {
+    const message = e.detail.result ? e.detail.result : 'Done!';
+    setStatus(message, 'success');
+
+    const configNode = document.querySelector('#config-locked');
+    const keysNode = document.querySelector('#keysNode');
+    if (e.detail.locked) {
+        if (configNode) configNode.classList.remove('hidden');
+        if (keysNode) keysNode.classList.add('locked');
+
+    } else {
+        if (configNode) configNode.classList.add('hidden');
+        if (keysNode) keysNode.classList.remove('locked');
+    }
+});
+
+window.addEventListener('app:fail', (e) => {
+    const message = e.detail.status < 500 ? e.detail.result : 'Service Unavailable';
+    setStatus(message, 'fail');
+});
 
 window.addEventListener('DOMContentLoaded', () => {
-    let keyBuffer = '';
-    let keyTimer;
-    const keyList = document.getElementById('keys')
-
-    const saveButton = document.getElementById('save');
-    if (saveButton) {
-        saveButton.addEventListener('click', () => {
+    const el = document.getElementById('save');
+    if (el) {
+        el.addEventListener('click', () => {
             document.querySelector('main.editor form').submit();
         });
     }
-
-    window.addEventListener('keyup', (e) => {
-        if (e.ctrlKey || e.shiftKey || e.altKey) return;
-
-        if (['INPUT', 'SELECT', 'TEXTAREA'].indexOf(e.target.nodeName) > -1) {
-            return;
-        }
-
-        if (['Shift', 'Alt', 'Meta', 'Control', 'Backspace'].indexOf(e.key) > -1) {
-            return;
-        }
-
-        if (e.key === 'Escape') {
-            const el = document.getElementById("status");
-            if (el) {
-                el.innerHTML = '';
-                el.className = '';
-            }
-            return;
-        }
-
-        if (keyList && keyList.classList.contains('locked')) {
-            window.dispatchEvent(new CustomEvent('trigger:locked'));
-            return;
-        }
-
-
-        keyBuffer += e.key;
-        clearTimeout(keyTimer);
-
-        const keyNodes = document.querySelectorAll(`a.key[data-keypress^='${keyBuffer}']`);
-        if (keyNodes.length === 0) {
-            keyBuffer = '';
-            return;
-        }
-
-        if (keyNodes.length === 1 && keyNodes[0].dataset.keypress === keyBuffer) {
-            keyNodes[0].click();
-            keyBuffer = '';
-            return;
-        }
-
-        keyTimer = setTimeout(() => {
-            const key = document.querySelector(`a.key[data-keypress='${keyBuffer}']`);
-            if (key) key.click();
-            keyBuffer = '';
-        }, 250);
-    });
-
-    window.addEventListener('click', (e) => {
-        if (e.target.nodeName !== 'A') return;
-
-        if (e.target.classList.contains('close')) {
-            const event = new KeyboardEvent('keyup', {
-                key: "Escape",
-                code: "Escape",
-                bubbles: true,
-            });
-            window.dispatchEvent(event);
-            return;
-        }
-
-        if (e.target.classList.contains('key')) {
-            e.preventDefault();
-            window.dispatchEvent(new CustomEvent('trigger:start'));
-
-            // Give the trigger:start message some time to display and not flicker.
-            setTimeout(() => runTrigger(e.target), 500);
-        }
-    });
-
-    window.addEventListener('trigger:start', () => {
-        setStatus('Running…', 'start');
-    });
-
-    window.addEventListener('trigger:locked', () => {
-        setStatus('The keyboard is locked.', 'locked');
-    });
-
-    window.addEventListener('trigger:success', (e) => {
-        const message = e.detail.result ? e.detail.result : 'Done!';
-        setStatus(message, 'success');
-
-        if (e.detail.command) {
-            console.log(e.detail.command);
-        }
-
-        const configNode = document.getElementById('config-locked');
-        if (configNode) {
-            const className = 'hidden';
-            if (e.detail.locked) {
-                configNode.classList.remove(className);
-            } else {
-                configNode.classList.add(className);
-            }
-        }
-
-        if (keyList) {
-            const className = 'locked';
-            if (e.detail.locked) {
-                keyList.classList.add(className);
-            } else {
-                keyList.classList.remove(className);
-            }
-        }
-    });
-
-    window.addEventListener('trigger:fail', (e) => {
-        let message = e.detail.result;
-
-        if (e.detail.status === 503) {
-            message = 'Service Unavailable';
-        }
-
-        setStatus(message, 'fail');
-    });
 });
 
 function setStatus(message, type) {
@@ -170,4 +121,30 @@ function setStatus(message, type) {
     clone.querySelector('.icon use').setAttribute('xlink:href', `#icon-${icon}`);
 
     container.replaceChildren(clone);
+}
+
+async function runTrigger(node) {
+    let eventName = 'app:fail';
+    let result = 'Could not connect to server';
+    let status = 0;
+    let state = '';
+    let locked = false;
+
+    try {
+        const response = await fetch(node.href, { method: 'POST' });
+        if (response.ok) {
+            eventName = 'app:success';
+            state = response.headers.get("X-Keys-State");
+            locked = Boolean(Number.parseInt(response.headers.get("X-Keys-Locked"), 10) || 0);
+        }
+        result = await response.text()
+        status = response.status;
+    } finally {
+        const event = new CustomEvent(eventName, {
+            detail: { node, status, result, locked }
+        });
+        window.dispatchEvent(event);
+
+        node.querySelector('.state').textContent = state;
+    }
 }
