@@ -154,32 +154,20 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function setStatus(message, type) {
-    const el = document.getElementById('status');
-    if (!el) return;
+    const container = document.getElementById('status');
+    if (!container) return;
+
+    container.className = type;
+
+    const clone = document.querySelector('#status-message').content.cloneNode(true);
+    clone.querySelector('.message').innerHTML = message;
 
     let icon = '';
+    if (type === 'fail') icon = 'skull';
+    if (type === 'success') icon = 'star';
+    if (type === 'start') icon = 'wait';
+    if (type === 'locked') icon = 'lock';
+    clone.querySelector('.icon use').setAttribute('xlink:href', `#icon-${icon}`);
 
-    if (type === 'fail') {
-        el.className = 'fail';
-        icon = 'skull';
-    }
-
-    if (type === 'success') {
-        el.className = 'success';
-        icon = 'star';
-    }
-
-    if (type === 'start') {
-        el.className = 'start';
-        icon = 'wait';
-    }
-
-    if (type === 'locked') {
-        el.className = 'locked';
-        icon = 'lock';
-    }
-
-    el.innerHTML = `<svg class="icon"><use xlink:href="#icon-${icon}"></use></svg>
-    <div>${message}</div>
-    <a href="#" class="close"><svg class="icon"><use xlink:href="#icon-close"></use></svg></a>`;
+    container.replaceChildren(clone);
 }
