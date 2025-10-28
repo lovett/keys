@@ -1,4 +1,4 @@
-.PHONY: build
+.PHONY: build setup lint
 
 watch:
 	ls *.go assets/* | entr -r go run .
@@ -8,3 +8,6 @@ build:
 
 setup:
 	sudo dnf install alsa-lib-devel
+
+lint:
+	biome lint assets/keys.js || true
