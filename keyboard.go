@@ -166,7 +166,13 @@ func fire(c chan *EventPair, config *Config) {
 	}
 
 	for pair := range c {
-		keyBuffer = append(keyBuffer, evdev.CodeName(pair.Event.Type, pair.Event.Code))
+		codeName := evdev.CodeName(pair.Event.Type, pair.Event.Code)
+		if config.KeyboardLocked {
+			log.Printf("Ignoring keypress of %s because keyboard is locked", codeName)
+			continue
+		}
+
+		keyBuffer = append(keyBuffer, codeName)
 
 		if timer != nil {
 			timer.Stop()

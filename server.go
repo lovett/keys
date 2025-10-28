@@ -142,12 +142,26 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stdout, err := key.RunCommand()
-
-	if err != nil {
-		PlayErrorSound(s.Config)
-		s.sendError(w, err.Error())
-		return
+	var stdout []byte
+	var err error
+	switch key.CurrentCommand() {
+	case "lock":
+		s.Config.KeyboardLocked = true
+		key.updateCommandIndex()
+		stdout = []byte("Keyboard locked")
+		w.Header().Set("X-Keys-Locked", "1")
+	case "unlock":
+		s.Config.KeyboardLocked = false
+		key.updateCommandIndex()
+		stdout = []byte("Keyboard unlocked")
+		w.Header().Set("X-Keys-Locked", "0")
+	default:
+		stdout, err = key.RunCommand()
+		if err != nil {
+			PlayErrorSound(s.Config)
+			s.sendError(w, err.Error())
+			return
+		}
 	}
 
 	if len(stdout) == 0 {

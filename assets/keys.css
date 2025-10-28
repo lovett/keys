@@ -119,6 +119,11 @@ header .actions {
     background-color: lemonchiffon;
 }
 
+#status.locked {
+    background-color: purple;
+    color: #fff;
+}
+
 #status .icon {
     width: 2em;
     height: 2em;
@@ -189,6 +194,11 @@ ul {
     margin: auto;
 }
 
+#keys.locked .key:not([data-lock-key]) {
+    opacity: .25;
+    pointer-events: none;
+}
+
 #keys li {
     display: inline-block;
     padding: 0.5em 1em 0.5em 0;
@@ -203,14 +213,14 @@ ul {
     height: 6em;
     grid-template-columns: 1fr auto;
     grid-template-rows: 1fr auto;
-    align-content: space-between;
+    align-items: end;
     background-color: #ddd;
     border-radius: .75em;
     box-shadow: 2px 2px 2px 0 #333;
-    color: inherit;
     padding: 0.25em 0.75em;
     box-sizing: border-box;
     transition: background-color 0.25s;
+    gap: 0 1em;
 }
 
 #keys .key:hover {
@@ -229,6 +239,7 @@ ul {
 #keys .key .key-label {
     grid-column: 1 / -1;
     font-weight: bold;
+    align-self: start;
     font-size: 1.75em;
 }
 
@@ -245,11 +256,6 @@ ul {
     font-size: .85em;
     font-style: italic;
 }
-
-#keys .key .state:empty {
-    display: none;
-}
-
 
 .editor form {
     width: 100%;
@@ -284,7 +290,7 @@ ul {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .icon {

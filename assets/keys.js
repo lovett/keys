@@ -3,18 +3,20 @@ async function runTrigger(node) {
     let result = 'Could not connect to server';
     let status = 0;
     let state = '';
+    let locked = false;
 
     try {
         const response = await fetch(node.href, { method: 'POST' });
         if (response.ok) {
             eventName = 'trigger:success';
             state = response.headers.get("X-Keys-State");
+            locked = Boolean(parseInt(response.headers.get("X-Keys-Locked"), 10) || 0);
         }
         result = await response.text()
         status = response.status;
     } finally {
         const event = new CustomEvent(eventName, {
-            detail: { node, status, result }
+            detail: { node, status, result, locked }
         });
         window.dispatchEvent(event);
 
@@ -25,6 +27,7 @@ async function runTrigger(node) {
 window.addEventListener('DOMContentLoaded', () => {
     let keyBuffer = '';
     let keyTimer;
+    const keyList = document.getElementById('keys')
 
     const saveButton = document.getElementById('save');
     if (saveButton) {
@@ -52,6 +55,12 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             return;
         }
+
+        if (keyList && keyList.classList.contains('locked')) {
+            window.dispatchEvent(new CustomEvent('trigger:locked'));
+            return;
+        }
+
 
         keyBuffer += e.key;
         clearTimeout(keyTimer);
@@ -101,9 +110,36 @@ window.addEventListener('DOMContentLoaded', () => {
         setStatus('Running…', 'start');
     });
 
+    window.addEventListener('trigger:locked', () => {
+        setStatus('The keyboard is locked.', 'locked');
+    });
+
     window.addEventListener('trigger:success', (e) => {
         const message = e.detail.result ? e.detail.result : 'Done!';
         setStatus(message, 'success');
+
+        if (e.detail.command) {
+            console.log(e.detail.command);
+        }
+
+        const configNode = document.getElementById('config-locked');
+        if (configNode) {
+            const className = 'hidden';
+            if (e.detail.locked) {
+                configNode.classList.remove(className);
+            } else {
+                configNode.classList.add(className);
+            }
+        }
+
+        if (keyList) {
+            const className = 'locked';
+            if (e.detail.locked) {
+                keyList.classList.add(className);
+            } else {
+                keyList.classList.remove(className);
+            }
+        }
     });
 
     window.addEventListener('trigger:fail', (e) => {
@@ -138,6 +174,10 @@ function setStatus(message, type) {
         icon = 'wait';
     }
 
+    if (type === 'locked') {
+        el.className = 'locked';
+        icon = 'lock';
+    }
 
     el.innerHTML = `<svg class="icon"><use xlink:href="#icon-${icon}"></use></svg>
     <div>${message}</div>

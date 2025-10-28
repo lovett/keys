@@ -20,14 +20,15 @@ const (
 )
 
 type Config struct {
-	AppVersion    string
-	KeyboardFound bool
-	Keymap        *Keymap
-	Mode          AppMode
-	PublicUrl     string
-	ServerAddress string
-	UseKeyboard   bool
-	UseServer     bool
+	AppVersion     string
+	KeyboardFound  bool
+	KeyboardLocked bool
+	Keymap         *Keymap
+	Mode           AppMode
+	PublicUrl      string
+	ServerAddress  string
+	UseKeyboard    bool
+	UseServer      bool
 }
 
 func NewConfig(appVersion string) *Config {

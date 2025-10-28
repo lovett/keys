@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os/exec"
 	"strings"
@@ -65,15 +64,11 @@ func (k *Key) updateCommandIndex() {
 		return
 	}
 
-	fmt.Println("was", k.CommandIndex)
-
 	if k.CommandIndex == 0 {
 		k.CommandIndex = 1
 	} else {
 		k.CommandIndex = 0
 	}
-
-	fmt.Println("now", k.CommandIndex)
 }
 
 func (k *Key) RunCommand() ([]byte, error) {
@@ -98,4 +93,8 @@ func (k *Key) RunCommand() ([]byte, error) {
 	k.updateCommandIndex()
 
 	return cmd.Output()
+}
+
+func (k *Key) IsLockKey() bool {
+	return k.CurrentCommand() == "lock" || k.CurrentCommand() == "unlock"
 }

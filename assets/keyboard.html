@@ -8,8 +8,9 @@
 <header>
     <h1>Keys</h1>
     <div id="config">
-        <span class="icon-with-label"><svg class="icon"><use xlink:href="#icon-speaker"></use></svg> Sound <span class="label">{{ if .SoundAllowed }}on{{ else }}off{{ end }}</span></span>
-        <span class="icon-with-label"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> Keyboard <span class="label">{{ if .KeyboardFound }}on{{ else }}off{{ end }}</span></span>
+        <span id="config-sound" class="icon-with-label"><svg class="icon"><use xlink:href="#icon-speaker"></use></svg> Sound <span class="label">{{ if .SoundAllowed }}on{{ else }}off{{ end }}</span></span>
+        <span id="config-keyboard" class="icon-with-label"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> Keyboard <span class="label">{{ if .KeyboardFound }}on{{ else }}off{{ end }}</span></span>
+        <span id="config-locked" class="icon-with-label {{ if not .KeyboardLocked }}hidden{{ end }}"><svg class="icon"><use xlink:href="#icon-lock"></use></svg> Keyboard <span class="label">Locked</span></span>
     </div>
 
     <div class="actions">
@@ -22,10 +23,10 @@
 {{ define "main" }}
 <div id="status"></div>
 <main>
-    <ul id="keys">
+    <ul id="keys" class="{{ if .KeyboardLocked }}locked{{end}}">
         {{range .Keymap.Keys }}
         <li>
-            <a class="key" data-keypress="{{ .Name }}" href="{{ $.RelativeTriggerUrl .Name }}">
+            <a class="key" data-keypress="{{ .Name }}" href="{{ $.RelativeTriggerUrl .Name }}" {{ if .IsLockKey }}data-lock-key{{end}}>
                 <div class="key-label">{{ .Label }}</div>
                 <div class="state">{{ .CurrentState }}</div>
                 <div class="name icon-with-label"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> <span class="label">{{ .Name }}</span></div>
