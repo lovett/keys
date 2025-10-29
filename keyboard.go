@@ -93,7 +93,7 @@ func PromptForKeyboard() (*string, error) {
 	devices := ListDevices()
 
 	if len(devices) == 0 {
-		return nil, errors.New("No keyboards found.")
+		return nil, errors.New("no keyboards found")
 	}
 
 	if len(devices) == 1 {
@@ -113,11 +113,11 @@ func PromptForKeyboard() (*string, error) {
 
 	index, err := strconv.Atoi(strings.TrimSuffix(answer, "\n"))
 	if err != nil {
-		return nil, errors.New("Invalid input.")
+		return nil, errors.New("invalid input")
 	}
 
 	if index < 1 || index > len(devices) {
-		return nil, errors.New("Invalid selection.")
+		return nil, errors.New("invalid selection")
 	}
 
 	return &devices[index-1], nil
@@ -195,7 +195,12 @@ func listen(path string, c chan *EventPair, wg *sync.WaitGroup, config *Config) 
 	if err != nil {
 		log.Fatalf("Failed to open device %s: %v", deviceName, err)
 	}
-	defer device.Close()
+	defer func() {
+		err := device.Close()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}()
 
 	if path == config.DesignatedKeyboard() {
 		err = device.Grab()
@@ -203,7 +208,12 @@ func listen(path string, c chan *EventPair, wg *sync.WaitGroup, config *Config) 
 			log.Fatalf("Failed to grab device %s: %v", deviceName, err)
 		}
 		log.Printf("Grabbed %s for exclusive access\n", deviceName)
-		defer device.Ungrab()
+		defer func() {
+			err := device.Ungrab();
+			if err != nil {
+				log.Fatalf("failed to ungrab deice %s: %v", deviceName, err)
+			}
+		}()
 	} else {
 		log.Printf("Listening for keyboard events on %s\n", deviceName)
 	}

@@ -64,9 +64,15 @@ func NewConfig(appVersion string) *Config {
 		appMode = KeyTestMode
 	}
 
+	keymap, err := NewKeymap(*config)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Could not parse config. Giving up.")
+		os.Exit(1)
+	}
+
 	return &Config{
 		AppVersion:    appVersion,
-		Keymap:        NewKeymap(*config),
+		Keymap:        keymap,
 		Mode:          appMode,
 		PublicUrl:     *publicUrl,
 		ServerAddress: fmt.Sprintf(":%d", *port),

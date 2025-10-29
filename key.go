@@ -83,7 +83,7 @@ func (k *Key) RunCommand() ([]byte, error) {
 
 	switch len(commandParts) {
 	case 0:
-		return nil, errors.New("Command not specified")
+		return nil, errors.New("command not specified")
 	case 1:
 		cmd = exec.CommandContext(ctx, commandParts[0])
 	default:

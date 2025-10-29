@@ -86,7 +86,10 @@ func SoundBuffer(path string) *Sound {
 
 	buffer := beep.NewBuffer(format)
 	buffer.Append(streamer)
-	streamer.Close()
+	err = streamer.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return &Sound{
 		Path:   path,

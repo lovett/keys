@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gopxl/beep"
@@ -17,7 +18,12 @@ type Sound struct {
 var soundMap = make(map[string]*Sound)
 
 func (s *Sound) Play() {
-	speaker.Init(s.Format.SampleRate, s.Format.SampleRate.N(time.Second/30))
+	err := speaker.Init(s.Format.SampleRate, s.Format.SampleRate.N(time.Second/30))
+
+    if err != nil {
+		fmt.Fprint(os.Stderr, err.Error())
+	    return
+    }
 
 	buffer := s.Buffer.Streamer(0, s.Buffer.Len())
 	speaker.Play(buffer)
@@ -70,7 +76,12 @@ func StartSoundTest() {
 
 	prompt := func(name string) {
 		fmt.Printf("Press ENTER to play the %s sound ", name)
-		fmt.Scanln()
+		_, err := fmt.Scanln()
+		if err != nil {
+			fmt.Fprint(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
 		soundMap[name].Play()
 	}
 
@@ -80,6 +91,10 @@ func StartSoundTest() {
 		}
 
 		fmt.Println("\nTest complete. Press Control-c to exit, or ENTER to test again.")
-		fmt.Scanln()
+		_, err := fmt.Scanln()
+		if err != nil {
+			fmt.Fprint(os.Stderr, err.Error())
+			os.Exit(1)
+		}
 	}
 }

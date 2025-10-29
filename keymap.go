@@ -15,23 +15,32 @@ type Keymap struct {
 	KeyCache map[string]*Key
 }
 
-func NewKeymap(filename string) *Keymap {
+func NewKeymap(filename string) (*Keymap, error) {
 	k := Keymap{
 		Filename: filename,
 	}
 
-	k.Parse()
+	err := k.Parse()
+	if err != nil {
+		return nil, err
+	}
+
 	k.KeyCache = make(map[string]*Key)
-	return &k
+	return &k, nil
 }
 
-func (k *Keymap) Reload() {
-	k.Parse()
+func (k *Keymap) Reload() error {
+	err := k.Parse()
+	if err != nil {
+		return err
+	}
+
 	k.KeyCache = make(map[string]*Key)
+	return nil
 }
 
 func (k *Keymap) Parse() error {
-	var err error
+	var loadErr error
 
 	options := ini.LoadOptions{
 		SkipUnrecognizableLines: true,
@@ -44,17 +53,16 @@ func (k *Keymap) Parse() error {
 			return err
 		}
 
-		k.Content, err = ini.LoadSources(options, skeleton.Bytes)
+		k.Content, loadErr = ini.LoadSources(options, skeleton.Bytes)
 	} else {
-		k.Content, err = ini.LoadSources(options, k.Filename)
+		k.Content, loadErr = ini.LoadSources(options, k.Filename)
 	}
 
-	if err != nil {
-		return err
+	if loadErr != nil {
+		return loadErr
 	}
 
 	// Usage is read-only, so (maybe?) speed up read operations.
-	//
 	// See https://ini.unknwon.io/docs/faqs
 	k.Content.BlockMode = false
 
@@ -148,23 +156,31 @@ func (k *Keymap) Keys() func(yield func(*Key) bool) {
 func (k *Keymap) StoreKeyboard(path string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return errors.New("Failed to get current directory.")
+		return errors.New("failed to get current directory")
 	}
 
 	// Not using system temp dir because rename across filesystems isn't supported
 	// and /tmp is probably on a separate partition.
 	tempFile, err := os.CreateTemp(cwd, "keys-temp*.ini")
 	if err != nil {
-		return errors.New("Failed to create temporary file.")
+		return errors.New("failed to create temporary file")
 	}
-	defer os.Remove(tempFile.Name())
+	defer func() {
+		removeErr := os.Remove(tempFile.Name())
+		if removeErr != nil {
+			err = removeErr
+		}
+	}()
 
 	k.Content.Section("").Key("keyboard").SetValue(path)
 
-	k.Content.SaveTo(tempFile.Name())
+	err = k.Content.SaveTo(tempFile.Name())
+	if err != nil {
+		return fmt.Errorf("could not save file %s: %w", tempFile.Name(), err)
+	}
 
 	if err := os.Rename(tempFile.Name(), k.Filename); err != nil {
-		return fmt.Errorf("could not open file %q: %w", tempFile.Name(), err)
+		return fmt.Errorf("could not open file %s: %w", tempFile.Name(), err)
 	}
 
 	return nil

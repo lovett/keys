@@ -39,7 +39,7 @@ func main() {
 		os.Exit(0)
 	case SystemdSetupMode:
 		if err := InstallSystemdUserService(); err != nil {
-			fmt.Println(fmt.Errorf("Error: %s", err.Error()))
+			fmt.Fprintln(os.Stderr, err.Error())
 		}
 		return
 	}

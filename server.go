@@ -44,10 +44,14 @@ func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	var output bytes.Buffer
 	if err := templates.ExecuteTemplate(&output, "layout.html", s.Config); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		if _, err = w.Write([]byte(err.Error())); err != nil {
+			log.Fatalf("unable to write error response body: %v", err)
+		}
 	} else {
 		w.Header().Set("Content-Type", "text/html")
-		w.Write(output.Bytes())
+		if _, err = w.Write(output.Bytes()); err != nil {
+			log.Fatalf("unable to write response body: %v", err)
+		}
 	}
 }
 
@@ -67,7 +71,9 @@ func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
 		s.logRequestWithStatus(r, http.StatusOK)
 		w.Header().Set("Content-Type", asset.MimeType)
 		w.Header().Set("ETag", asset.Hash)
-		w.Write(asset.Bytes)
+		if _, err := w.Write(asset.Bytes); err != nil {
+			log.Fatalf("unable to write asset body: %v", err)
+		}
 	}
 }
 
@@ -80,9 +86,14 @@ func (s *Server) editHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := templates.ExecuteTemplate(&output, "layout.html", s.Config.Keymap); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Fatalf("unable to write edit response error body: %v", err)
+		}
 	} else {
-		w.Write(output.Bytes())
+		if _, err := w.Write(output.Bytes()); err != nil {
+			log.Fatalf("unable to write edit response body: %v", err)
+		}
+
 	}
 }
 
@@ -109,7 +120,11 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to create temporary file.", http.StatusInternalServerError)
 		return
 	}
-	defer os.Remove(tempFile.Name())
+	defer func() {
+		if err := os.Remove(tempFile.Name()); err != nil {
+			log.Fatalf("unable to remove tempfile: %v", err);
+		}
+	}()
 
 	if _, err := tempFile.Write([]byte(r.Form.Get("content"))); err != nil {
 		http.Error(w, "Failed to write to temporary file.", http.StatusInternalServerError)
@@ -127,7 +142,10 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Config.Keymap.Reload()
+	err = s.Config.Keymap.Reload()
+	if err != nil {
+		log.Fatalf("Error during reload: %v", err)
+	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -176,20 +194,26 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write(stdout)
+	if _, err := w.Write(stdout); err != nil {
+		log.Fatalf("unable to write stdout response body: %v", err)
+	}
 }
 
 func (s *Server) versionHandler(w http.ResponseWriter, r *http.Request) {
 	s.logRequest(r)
 
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(s.Config.AppVersion))
+	if _, err := w.Write([]byte(s.Config.AppVersion)); err != nil {
+		log.Fatalf("unable to write version response body: %v", err)
+	}
 }
 
 func (s *Server) sendError(w http.ResponseWriter, message string) {
 	w.WriteHeader(http.StatusUnprocessableEntity)
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(message))
+	if _, err := w.Write([]byte(message)); err != nil {
+		log.Fatalf("unable to write error response body: %v", err)
+	}
 }
 
 func (s *Server) logRequest(r *http.Request) {
