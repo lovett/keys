@@ -196,7 +196,12 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		PlayConfirmationSound(s.Config)
 	}
 
-	w.Header().Set("Content-Type", "text/plain")
+	if bytes.ContainsRune(stdout, '<') && bytes.ContainsRune(stdout, '>') {
+		w.Header().Set("Content-Type", "text/html")
+	} else {
+		w.Header().Set("Content-Type", "text/plain")
+	}
+
 	if _, err := w.Write(stdout); err != nil {
 		log.Fatalf("unable to write stdout response body: %v", err)
 	}

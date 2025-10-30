@@ -137,7 +137,16 @@ async function runTrigger(node) {
             state = response.headers.get("X-Keys-State");
             locked = Boolean(Number.parseInt(response.headers.get("X-Keys-Locked"), 10) || 0);
         }
-        result = await response.text()
+
+        if (response.headers.get("Content-Type") === "text/html") {
+            const parser = new DOMParser()
+            const doc = parser.parseFromString(await response.text(), "text/html")
+            const body = doc.querySelector('body');
+            result = (body) ? body.innerHTML : '<em>Response cannot be shown.</em>';
+        } else {
+            result = await response.text();
+        }
+
         status = response.status;
     } finally {
         const event = new CustomEvent(eventName, {
