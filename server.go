@@ -122,7 +122,10 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		if err := os.Remove(tempFile.Name()); err != nil {
-			log.Fatalf("unable to remove tempfile: %v", err);
+			if os.IsNotExist(err) {
+				return
+			}
+			log.Fatalf("unable to remove tempfile: %v", err)
 		}
 	}()
 
