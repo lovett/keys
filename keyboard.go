@@ -209,7 +209,7 @@ func listen(path string, c chan *EventPair, wg *sync.WaitGroup, config *Config) 
 		}
 		log.Printf("Grabbed %s for exclusive access\n", deviceName)
 		defer func() {
-			err := device.Ungrab();
+			err := device.Ungrab()
 			if err != nil {
 				log.Fatalf("failed to ungrab deice %s: %v", deviceName, err)
 			}
