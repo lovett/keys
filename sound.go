@@ -10,21 +10,31 @@ import (
 )
 
 type Sound struct {
-	Path   string
-	Format beep.Format
-	Buffer beep.Buffer
+	Path               string
+	Format             beep.Format
+	Buffer             beep.Buffer
+	SpeakerInitialized bool
 }
 
-var soundMap = make(map[string]*Sound)
+var (
+	soundMap           = make(map[string]*Sound)
+	speakerInitialized = false
+)
+
+func initializeSpeaker(s *Sound) {
+	if speakerInitialized {
+		return
+	}
+
+	if err := speaker.Init(s.Format.SampleRate, s.Format.SampleRate.N(time.Second/30)); err != nil {
+		fmt.Fprint(os.Stderr, err)
+	} else {
+		speakerInitialized = true
+	}
+}
 
 func (s *Sound) Play() {
-	err := speaker.Init(s.Format.SampleRate, s.Format.SampleRate.N(time.Second/30))
-
-    if err != nil {
-		fmt.Fprint(os.Stderr, err.Error())
-	    return
-    }
-
+	initializeSpeaker(s)
 	buffer := s.Buffer.Streamer(0, s.Buffer.Len())
 	speaker.Play(buffer)
 }
