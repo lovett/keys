@@ -1,12 +1,17 @@
-package main
+package sound
 
 import (
 	"fmt"
+	"keys/internal/asset"
+	"keys/internal/config"
+	"keys/internal/keymap"
+	"log"
 	"os"
 	"time"
 
 	"github.com/gopxl/beep"
 	"github.com/gopxl/beep/speaker"
+	"github.com/gopxl/beep/vorbis"
 )
 
 type Sound struct {
@@ -50,23 +55,23 @@ func LoadSounds() {
 	soundMap["down"] = SoundBuffer("assets/state-change_confirm-down.ogg")
 }
 
-func PlayConfirmationSound(config *Config) {
-	if !config.SoundAllowed() {
+func PlayConfirmationSound(cfg *config.Config) {
+	if !cfg.SoundAllowed() {
 		return
 	}
 
 	soundMap["confirmation"].Play()
 }
 
-func PlayErrorSound(config *Config) {
-	if !config.SoundAllowed() {
+func PlayErrorSound(cfg *config.Config) {
+	if !cfg.SoundAllowed() {
 		return
 	}
 	soundMap["error"].Play()
 }
 
-func PlayToggleSound(config *Config, key *Key) {
-	if !config.SoundAllowed() {
+func PlayToggleSound(cfg *config.Config, key *keymap.Key) {
+	if !cfg.SoundAllowed() {
 		return
 	}
 
@@ -106,5 +111,31 @@ func StartSoundTest() {
 			fmt.Fprint(os.Stderr, err.Error())
 			os.Exit(1)
 		}
+	}
+}
+
+func SoundBuffer(path string) *Sound {
+	b, err := asset.AssetFS.Open(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	streamer, format, err := vorbis.Decode(b)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buffer := beep.NewBuffer(format)
+	buffer.Append(streamer)
+	err = streamer.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &Sound{
+		Path:   path,
+		Format: format,
+		Buffer: *buffer,
 	}
 }

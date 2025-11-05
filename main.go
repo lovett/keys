@@ -2,54 +2,59 @@ package main
 
 import (
 	"fmt"
+	"keys/internal/config"
+	"keys/internal/keyboard"
+	"keys/internal/server"
+	"keys/internal/sound"
+	"keys/internal/system"
 	"os"
 )
 
 const APP_VERSION = "dev"
 
 func main() {
-	config := NewConfig(APP_VERSION)
+	cfg := config.NewConfig(APP_VERSION)
 
-	switch config.Mode {
-	case VersionMode:
-		fmt.Println(config.AppVersion)
+	switch cfg.Mode {
+	case config.VersionMode:
+		fmt.Println(cfg.AppVersion)
 		return
-	case KeyTestMode:
-		StartKeyTest(config)
+	case config.KeyTestMode:
+		keyboard.StartKeyTest(cfg)
 		return
-	case SoundTestMode:
-		StartSoundTest()
+	case config.SoundTestMode:
+		sound.StartSoundTest()
 		return
-	case KeyboardSelectMode:
-		keyboard, err := PromptForKeyboard()
+	case config.KeyboardSelectMode:
+		keyboard, err := keyboard.PromptForKeyboard()
 
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
 
-		err = config.Keymap.StoreKeyboard(*keyboard)
+		err = cfg.Keymap.StoreKeyboard(*keyboard)
 
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
 
-		fmt.Printf("Updated %s\n", config.Keymap.Filename)
+		fmt.Printf("Updated %s\n", cfg.Keymap.Filename)
 		os.Exit(0)
-	case SystemdSetupMode:
-		if err := InstallSystemdUserService(); err != nil {
+	case config.SystemdSetupMode:
+		if err := system.InstallSystemdUserService(); err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 		}
 		return
 	}
 
-	if config.UseKeyboard {
-		go StartKeyboardListener(config)
+	if cfg.UseKeyboard {
+		go keyboard.StartKeyboardListener(cfg)
 	}
 
-	if config.UseServer {
-		LoadSounds()
-		StartServer(config)
+	if cfg.UseServer {
+		sound.LoadSounds()
+		server.StartServer(cfg)
 	}
 }

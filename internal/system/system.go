@@ -1,13 +1,14 @@
-package main
+package system
 
 import (
 	"fmt"
+	"keys/internal/asset"
 	"os"
 	"path/filepath"
 )
 
 func InstallSystemdUserService() error {
-	asset, err := ReadAsset("assets/keys.service")
+	asset, err := asset.ReadAsset("assets/keys.service")
 	if err != nil {
 		return err
 	}

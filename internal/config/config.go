@@ -1,8 +1,9 @@
-package main
+package config
 
 import (
 	"flag"
 	"fmt"
+	"keys/internal/keymap"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +24,7 @@ type Config struct {
 	AppVersion     string
 	KeyboardFound  bool
 	KeyboardLocked bool
-	Keymap         *Keymap
+	Keymap         *keymap.Keymap
 	Mode           AppMode
 	PublicUrl      string
 	ServerAddress  string
@@ -64,7 +65,7 @@ func NewConfig(appVersion string) *Config {
 		appMode = KeyTestMode
 	}
 
-	keymap, err := NewKeymap(*config)
+	keymap, err := keymap.NewKeymap(*config)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Could not parse config. Giving up.")
 		os.Exit(1)

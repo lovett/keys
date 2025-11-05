@@ -1,9 +1,10 @@
-package main
+package keyboard
 
 import (
 	"bufio"
 	"errors"
 	"fmt"
+	"keys/internal/config"
 	"log"
 	"net/http"
 	"os"
@@ -22,12 +23,12 @@ type EventPair struct {
 	Path  string
 }
 
-func StartKeyTest(config *Config) {
+func StartKeyTest(config *config.Config) {
 	log.Println("Running key test. Press a key to see its name.")
 	StartKeyboardListener(config)
 }
 
-func StartKeyboardListener(config *Config) {
+func StartKeyboardListener(cfg *config.Config) {
 
 	if !userInGroup("input") {
 		log.Fatal("Current user doesn't belong to input group")
@@ -38,29 +39,29 @@ func StartKeyboardListener(config *Config) {
 	c := make(chan *EventPair)
 
 	wg.Add(1)
-	if config.Mode == KeyTestMode {
-		go testFire(c, config)
+	if cfg.Mode == config.KeyTestMode {
+		go testFire(c, cfg)
 	} else {
-		go fire(c, config)
+		go fire(c, cfg)
 	}
 
 	for _, device := range ListDevices() {
-		if config.DesignatedKeyboard() != "" && device != config.DesignatedKeyboard() {
+		if cfg.DesignatedKeyboard() != "" && device != cfg.DesignatedKeyboard() {
 			log.Printf("Skipping %s\n", deviceName(device))
 			continue
 		}
 
-		config.KeyboardFound = true
+		cfg.KeyboardFound = true
 		wg.Add(1)
-		go listen(device, c, &wg, config)
+		go listen(device, c, &wg, cfg)
 	}
 
-	if config.KeyboardFound {
+	if cfg.KeyboardFound {
 		wg.Wait()
 	} else {
 		sleepDuration := time.Duration(10 * time.Second)
 		time.Sleep(sleepDuration)
-		StartKeyboardListener(config)
+		StartKeyboardListener(cfg)
 	}
 }
 
@@ -132,28 +133,28 @@ func ListDevices() []string {
 	return matches
 }
 
-func testFire(c chan *EventPair, config *Config) {
+func testFire(c chan *EventPair, cfg *config.Config) {
 	for pair := range c {
 		key := evdev.CodeName(pair.Event.Type, pair.Event.Code)
 		format := "\nKey pressed on %s: %s \n"
-		if config.DesignatedKeyboard() != "" && pair.Path == config.DesignatedKeyboard() {
+		if cfg.DesignatedKeyboard() != "" && pair.Path == cfg.DesignatedKeyboard() {
 			format = format[1:]
 		}
 
 		fmt.Printf(
 			format,
 			deviceName(pair.Path),
-			config.Keymap.KeyNameToSectionName(key),
+			cfg.Keymap.KeyNameToSectionName(key),
 		)
 	}
 }
 
-func fire(c chan *EventPair, config *Config) {
+func fire(c chan *EventPair, cfg *config.Config) {
 	var timer *time.Timer
 	keyBuffer := []string{}
 
 	callback := func() {
-		url := config.PublicTriggerUrl(strings.Join(keyBuffer, ","))
+		url := cfg.PublicTriggerUrl(strings.Join(keyBuffer, ","))
 		resp, err := http.Post(url, "", nil)
 
 		if err != nil {
@@ -167,7 +168,7 @@ func fire(c chan *EventPair, config *Config) {
 
 	for pair := range c {
 		codeName := evdev.CodeName(pair.Event.Type, pair.Event.Code)
-		if config.KeyboardLocked {
+		if cfg.KeyboardLocked {
 			log.Printf("Ignoring keypress of %s because keyboard is locked", codeName)
 			continue
 		}
@@ -178,7 +179,7 @@ func fire(c chan *EventPair, config *Config) {
 			timer.Stop()
 		}
 
-		if config.Keymap.IsPrefix(keyBuffer) {
+		if cfg.Keymap.IsPrefix(keyBuffer) {
 			timer = time.AfterFunc(500*time.Millisecond, callback)
 		} else {
 			callback()
@@ -186,7 +187,7 @@ func fire(c chan *EventPair, config *Config) {
 	}
 }
 
-func listen(path string, c chan *EventPair, wg *sync.WaitGroup, config *Config) {
+func listen(path string, c chan *EventPair, wg *sync.WaitGroup, cfg *config.Config) {
 	defer wg.Done()
 
 	deviceName := deviceName(path)
@@ -202,7 +203,7 @@ func listen(path string, c chan *EventPair, wg *sync.WaitGroup, config *Config) 
 		}
 	}()
 
-	if path == config.DesignatedKeyboard() {
+	if path == cfg.DesignatedKeyboard() {
 		err = device.Grab()
 		if err != nil {
 			log.Fatalf("Failed to grab device %s: %v", deviceName, err)
@@ -222,7 +223,7 @@ func listen(path string, c chan *EventPair, wg *sync.WaitGroup, config *Config) 
 		event, err := device.ReadOne()
 		if err != nil {
 			log.Printf("Failed to read keyboard input: %s", err)
-			StartKeyboardListener(config)
+			StartKeyboardListener(cfg)
 			return
 		}
 

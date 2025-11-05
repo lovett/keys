@@ -1,9 +1,12 @@
-package main
+package server
 
 import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"keys/internal/asset"
+	"keys/internal/config"
+	"keys/internal/sound"
 	"log"
 	"net/http"
 	"os"
@@ -11,15 +14,15 @@ import (
 )
 
 type Server struct {
-	Config *Config
+	Config *config.Config
 }
 
-func StartServer(config *Config) {
+func StartServer(config *config.Config) {
 	s := Server{
 		Config: config,
 	}
 
-	if err := HashAssets(); err != nil {
+	if err := asset.HashAssets(); err != nil {
 		log.Fatalf("Error during asset hashing: %s", err.Error())
 	}
 
@@ -39,7 +42,7 @@ func StartServer(config *Config) {
 func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	s.logRequest(r)
 
-	templates := template.Must(template.ParseFS(AssetFS, "assets/layout.html", "assets/keyboard.html"))
+	templates := template.Must(template.ParseFS(asset.AssetFS, "assets/layout.html", "assets/keyboard.html"))
 
 	var output bytes.Buffer
 	if err := templates.ExecuteTemplate(&output, "layout.html", s.Config); err != nil {
@@ -56,7 +59,7 @@ func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
-	asset, err := ReadAsset(strings.TrimPrefix(r.RequestURI, "/"))
+	asset, err := asset.ReadAsset(strings.TrimPrefix(r.RequestURI, "/"))
 
 	if err != nil {
 		s.logRequestWithStatus(r, http.StatusNotFound)
@@ -80,7 +83,7 @@ func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) editHandler(w http.ResponseWriter, r *http.Request) {
 	s.logRequest(r)
 
-	templates := template.Must(template.ParseFS(AssetFS, "assets/layout.html", "assets/editor.html"))
+	templates := template.Must(template.ParseFS(asset.AssetFS, "assets/layout.html", "assets/editor.html"))
 
 	var output bytes.Buffer
 
@@ -168,18 +171,18 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	switch key.CurrentCommand() {
 	case "lock":
 		s.Config.KeyboardLocked = true
-		key.updateCommandIndex()
+		key.UpdateCommandIndex()
 		stdout = []byte("Keyboard locked")
 		w.Header().Set("X-Keys-Locked", "1")
 	case "unlock":
 		s.Config.KeyboardLocked = false
-		key.updateCommandIndex()
+		key.UpdateCommandIndex()
 		stdout = []byte("Keyboard unlocked")
 		w.Header().Set("X-Keys-Locked", "0")
 	default:
 		stdout, err = key.RunCommand()
 		if err != nil {
-			PlayErrorSound(s.Config)
+			sound.PlayErrorSound(s.Config)
 			s.sendError(w, err.Error())
 			return
 		}
@@ -190,10 +193,10 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if key.Toggle {
-		PlayToggleSound(s.Config, key)
+		sound.PlayToggleSound(s.Config, key)
 		w.Header().Set("X-Keys-State", key.CurrentState())
 	} else {
-		PlayConfirmationSound(s.Config)
+		sound.PlayConfirmationSound(s.Config)
 	}
 
 	if bytes.ContainsRune(stdout, '<') && bytes.ContainsRune(stdout, '>') {

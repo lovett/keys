@@ -1,4 +1,4 @@
-package main
+package keymap
 
 import (
 	"context"
@@ -59,7 +59,7 @@ func (k *Key) CurrentState() string {
 	return k.States[k.CommandIndex]
 }
 
-func (k *Key) updateCommandIndex() {
+func (k *Key) UpdateCommandIndex() {
 	if !k.Toggle {
 		return
 	}
@@ -90,7 +90,7 @@ func (k *Key) RunCommand() ([]byte, error) {
 		cmd = exec.CommandContext(ctx, commandParts[0], commandParts[1:]...)
 	}
 
-	k.updateCommandIndex()
+	k.UpdateCommandIndex()
 
 	return cmd.Output()
 }

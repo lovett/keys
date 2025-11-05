@@ -1,15 +1,11 @@
-package main
+package asset
 
 import (
 	"crypto/md5"
 	"embed"
 	"fmt"
 	"io/fs"
-	"log"
 	"path/filepath"
-
-	"github.com/gopxl/beep"
-	"github.com/gopxl/beep/vorbis"
 )
 
 //go:embed assets/*
@@ -70,32 +66,6 @@ func ReadAsset(path string) (*Asset, error) {
 		Hash:     hashMap[path],
 		MimeType: mimeType(path),
 	}, nil
-}
-
-func SoundBuffer(path string) *Sound {
-	b, err := AssetFS.Open(path)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	streamer, format, err := vorbis.Decode(b)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	buffer := beep.NewBuffer(format)
-	buffer.Append(streamer)
-	err = streamer.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return &Sound{
-		Path:   path,
-		Format: format,
-		Buffer: *buffer,
-	}
 }
 
 func mimeType(path string) string {
