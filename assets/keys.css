@@ -123,14 +123,13 @@ h2 {
 
 #status {
     padding: 0.75em;
-    white-space: pre;
+    white-space: pre-line;
     font-family: monospace;
     margin-bottom: 1em;
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 1em;
-
 }
 
 #status:empty {
