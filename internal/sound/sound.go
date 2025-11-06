@@ -22,7 +22,7 @@ type Sound struct {
 }
 
 var (
-	soundMap           = make(map[string]*Sound)
+	SoundMap           = make(map[string]*Sound)
 	speakerInitialized = false
 )
 
@@ -45,14 +45,14 @@ func (s *Sound) Play() {
 }
 
 func LoadSounds() {
-	if len(soundMap) != 0 {
+	if len(SoundMap) != 0 {
 		return
 	}
 
-	soundMap["confirmation"] = SoundBuffer("assets/hero_simple-celebration-02.ogg")
-	soundMap["error"] = SoundBuffer("assets/alert_error-03.ogg")
-	soundMap["up"] = SoundBuffer("assets/state-change_confirm-up.ogg")
-	soundMap["down"] = SoundBuffer("assets/state-change_confirm-down.ogg")
+	SoundMap["confirmation"] = SoundBuffer("assets/hero_simple-celebration-02.ogg")
+	SoundMap["error"] = SoundBuffer("assets/alert_error-03.ogg")
+	SoundMap["up"] = SoundBuffer("assets/state-change_confirm-up.ogg")
+	SoundMap["down"] = SoundBuffer("assets/state-change_confirm-down.ogg")
 }
 
 func PlayConfirmationSound(cfg *config.Config) {
@@ -60,14 +60,14 @@ func PlayConfirmationSound(cfg *config.Config) {
 		return
 	}
 
-	soundMap["confirmation"].Play()
+	SoundMap["confirmation"].Play()
 }
 
 func PlayErrorSound(cfg *config.Config) {
 	if !cfg.SoundAllowed() {
 		return
 	}
-	soundMap["error"].Play()
+	SoundMap["error"].Play()
 }
 
 func PlayToggleSound(cfg *config.Config, key *keymap.Key) {
@@ -80,37 +80,9 @@ func PlayToggleSound(cfg *config.Config, key *keymap.Key) {
 	}
 
 	if key.CommandIndex == 0 {
-		soundMap["down"].Play()
+		SoundMap["down"].Play()
 	} else {
-		soundMap["up"].Play()
-	}
-}
-
-func StartSoundTest() {
-	LoadSounds()
-
-	prompt := func(name string) {
-		fmt.Printf("Press ENTER to play the %s sound ", name)
-		_, err := fmt.Scanln()
-		if err != nil {
-			fmt.Fprint(os.Stderr, err.Error())
-			os.Exit(1)
-		}
-
-		soundMap[name].Play()
-	}
-
-	for {
-		for name := range soundMap {
-			prompt(name)
-		}
-
-		fmt.Println("\nTest complete. Press Control-c to exit, or ENTER to test again.")
-		_, err := fmt.Scanln()
-		if err != nil {
-			fmt.Fprint(os.Stderr, err.Error())
-			os.Exit(1)
-		}
+		SoundMap["up"].Play()
 	}
 }
 

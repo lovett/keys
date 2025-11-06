@@ -23,11 +23,6 @@ type EventPair struct {
 	Path  string
 }
 
-func StartKeyTest(config *config.Config) {
-	log.Println("Running key test. Press a key to see its name.")
-	StartKeyboardListener(config)
-}
-
 func StartKeyboardListener(cfg *config.Config) {
 
 	if !userInGroup("input") {

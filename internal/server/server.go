@@ -14,12 +14,14 @@ import (
 )
 
 type Server struct {
-	Config *config.Config
+	ServerAddress string
+	Config        *config.Config
 }
 
-func StartServer(config *config.Config) {
+func StartServer(cfg *config.Config, port int) {
 	s := Server{
-		Config: config,
+		ServerAddress: fmt.Sprintf(":%d", port),
+		Config:        cfg,
 	}
 
 	if err := asset.HashAssets(); err != nil {
@@ -34,9 +36,9 @@ func StartServer(config *config.Config) {
 	http.HandleFunc("GET /version", s.versionHandler)
 	http.HandleFunc("POST /edit", s.saveHandler)
 	http.HandleFunc("POST /trigger/{key}", s.triggerHandler)
-	log.Printf("Serving on %s and available from %s", config.ServerAddress, config.PublicUrl)
-	log.Printf("Config file is %s", config.Keymap.Filename)
-	log.Fatal(http.ListenAndServe(config.ServerAddress, nil))
+	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)
+	log.Printf("Config file is %s", cfg.Keymap.Filename)
+	log.Fatal(http.ListenAndServe(s.ServerAddress, nil))
 }
 
 func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
