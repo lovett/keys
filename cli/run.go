@@ -20,7 +20,11 @@ func Run(appVersion string) int {
 	flag.Usage = topUsage
 	flag.Parse()
 
-	cfg := config.NewConfig(*configFlag, appVersion)
+	cfg, err := config.NewConfig(*configFlag, appVersion)
+	if err != nil {
+		os.Stderr.WriteString("Could not parse config. Giving up.")
+		return 1
+	}
 
 	if *versionFlag {
 		os.Stdout.WriteString(appVersion)

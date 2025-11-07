@@ -1,10 +1,8 @@
 package config
 
 import (
-	"flag"
 	"fmt"
 	"keys/internal/keymap"
-	"os"
 )
 
 type AppMode int
@@ -25,27 +23,19 @@ type Config struct {
 	PublicUrl      string
 }
 
-func NewConfig(configFile string, appVersion string) *Config {
-	selectKeyboard := flag.Bool("select-keyboard", false, "Choose which keyboard to use for input")
-
-	flag.Parse()
-
-	appMode := NormalMode
-	if *selectKeyboard {
-		appMode = KeyboardSelectMode
-	}
-
+func NewConfig(configFile string, appVersion string) (*Config, error) {
 	keymap, err := keymap.NewKeymap(configFile)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Could not parse config. Giving up.")
-		os.Exit(1)
+		return nil, err
 	}
 
-	return &Config{
+	cfg := Config{
 		AppVersion: appVersion,
 		Keymap:     keymap,
-		Mode:       appMode,
+		Mode:       NormalMode,
 	}
+
+	return &cfg, nil
 }
 
 func (c *Config) EnableKeyTestMode() {
