@@ -149,7 +149,7 @@ func fire(c chan *EventPair, cfg *config.Config) {
 	keyBuffer := []string{}
 
 	callback := func() {
-		url := cfg.PublicTriggerUrl(strings.Join(keyBuffer, ","))
+		url := fmt.Sprintf("%s/trigger/%s", cfg.PublicUrl, strings.Join(keyBuffer, ","))
 		resp, err := http.Post(url, "", nil)
 
 		if err != nil {

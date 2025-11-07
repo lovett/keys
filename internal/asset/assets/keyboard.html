@@ -26,7 +26,8 @@
     <ul id="keys" class="{{ if .KeyboardLocked }}locked{{end}}">
         {{range .Keymap.Keys }}
         <li>
-            <a class="key" data-keypress="{{ .Name }}" href="{{ $.RelativeTriggerUrl .Name }}" {{ if .IsLockKey }}data-lock-key{{end}}>
+            {{/* Href is relative due to CORS */}}
+            <a class="key" data-keypress="{{ .Name }}" href="/trigger/{{ .Name }}" {{ if .IsLockKey }}data-lock-key{{end}}>
                 <div class="key-label">{{ .Label }}</div>
                 <div class="state">{{ .CurrentState }}</div>
                 <div class="name icon-with-label"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> <span class="label">{{ .Name }}</span></div>

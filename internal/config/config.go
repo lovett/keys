@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"keys/internal/keymap"
 )
 
@@ -40,14 +39,6 @@ func NewConfig(configFile string, appVersion string) (*Config, error) {
 
 func (c *Config) EnableKeyTestMode() {
 	c.Mode = KeyTestMode
-}
-
-func (c *Config) RelativeTriggerUrl(key string) string {
-	return fmt.Sprintf("/trigger/%s", key)
-}
-
-func (c *Config) PublicTriggerUrl(key string) string {
-	return fmt.Sprintf("%s/trigger/%s", c.PublicUrl, key)
 }
 
 func (c *Config) DesignatedKeyboard() string {
