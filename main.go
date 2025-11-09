@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-const APP_VERSION = "dev"
-
 func main() {
-	os.Exit(cli.Run(APP_VERSION))
+	os.Exit(cli.Run())
 }

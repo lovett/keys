@@ -53,6 +53,16 @@ func HashAssets() error {
 	})
 }
 
+func ReadVersion() []byte {
+	b, err := AssetFS.ReadFile("assets/version.txt")
+
+	if err != nil {
+		return []byte("dev")
+	}
+
+	return b
+}
+
 func ReadAsset(path string) (*Asset, error) {
 	b, err := AssetFS.ReadFile(path)
 

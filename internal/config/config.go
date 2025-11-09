@@ -8,13 +8,11 @@ type AppMode int
 
 const (
 	NormalMode AppMode = iota
-	VersionMode
 	KeyboardSelectMode
 	KeyTestMode
 )
 
 type Config struct {
-	AppVersion     string
 	KeyboardFound  bool
 	KeyboardLocked bool
 	Keymap         *keymap.Keymap
@@ -22,16 +20,15 @@ type Config struct {
 	PublicUrl      string
 }
 
-func NewConfig(configFile string, appVersion string) (*Config, error) {
+func NewConfig(configFile string) (*Config, error) {
 	keymap, err := keymap.NewKeymap(configFile)
 	if err != nil {
 		return nil, err
 	}
 
 	cfg := Config{
-		AppVersion: appVersion,
-		Keymap:     keymap,
-		Mode:       NormalMode,
+		Keymap: keymap,
+		Mode:   NormalMode,
 	}
 
 	return &cfg, nil

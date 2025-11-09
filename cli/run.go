@@ -2,12 +2,13 @@ package cli
 
 import (
 	"flag"
+	"keys/internal/asset"
 	"keys/internal/config"
 	"os"
 	"path/filepath"
 )
 
-func Run(appVersion string) int {
+func Run() int {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		os.Stderr.WriteString("Could not determine config dir. Giving up.")
@@ -20,15 +21,15 @@ func Run(appVersion string) int {
 	flag.Usage = topUsage
 	flag.Parse()
 
-	cfg, err := config.NewConfig(*configFlag, appVersion)
+	if *versionFlag {
+		os.Stdout.Write(asset.ReadVersion())
+		return 0
+	}
+
+	cfg, err := config.NewConfig(*configFlag)
 	if err != nil {
 		os.Stderr.WriteString("Could not parse config. Giving up.")
 		return 1
-	}
-
-	if *versionFlag {
-		os.Stdout.WriteString(appVersion)
-		return 0
 	}
 
 	var command string

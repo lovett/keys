@@ -216,7 +216,7 @@ func (s *Server) versionHandler(w http.ResponseWriter, r *http.Request) {
 	s.logRequest(r)
 
 	w.Header().Set("Content-Type", "text/plain")
-	if _, err := w.Write([]byte(s.Config.AppVersion)); err != nil {
+	if _, err := w.Write(asset.ReadVersion()); err != nil {
 		log.Fatalf("unable to write version response body: %v", err)
 	}
 }
