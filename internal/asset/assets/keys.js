@@ -21,16 +21,17 @@ window.addEventListener('click', (e) => {
 });
 
 window.addEventListener('keyup', (e) => {
+    if (e.key === 'Escape') {
+        window.dispatchEvent(new CustomEvent('app:clear'));
+        window.dispatchEvent(new CustomEvent('app:cancel'));
+    }
+
     if (e.ctrlKey || e.shiftKey || e.altKey) return;
 
     if (['INPUT', 'SELECT', 'TEXTAREA'].indexOf(e.target.nodeName) > -1) return;
 
     if (['Shift', 'Alt', 'Meta', 'Control', 'Backspace'].indexOf(e.key) > -1) return;
 
-    if (e.key === 'Escape') {
-        window.dispatchEvent(new CustomEvent('app:clear'));
-        return;
-    }
 
     if (document.querySelector('#keys.locked')) {
         window.dispatchEvent(new CustomEvent('app:locked'));
@@ -57,6 +58,12 @@ window.addEventListener('keyup', (e) => {
         if (key) key.click();
         keyBuffer = '';
     }, 250);
+});
+
+window.addEventListener('app:cancel', () => {
+    const node = document.querySelector('#cancel');
+    if (!node) return;
+    node.click();
 });
 
 window.addEventListener('app:clear', () => {

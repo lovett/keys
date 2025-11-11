@@ -87,11 +87,6 @@ header {
     }
 }
 
-header #cancel {
-    color: inherit;
-    margin-right: 2em;
-}
-
 header h1 {
     grid-area: title;
     font-size: inherit;
