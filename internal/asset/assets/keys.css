@@ -292,7 +292,8 @@ ul {
 @media (min-width: 420px) {
     #examples {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1em;
     }
 
     #examples h2 {

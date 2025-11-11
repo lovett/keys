@@ -25,7 +25,7 @@
     <div id="examples">
         <h2>Examples</h2>
         <details>
-            <summary>Single-press key with output</summary>
+            <summary>Single-press key</summary>
             <pre>
 [h]
 label = hello
@@ -36,7 +36,7 @@ command = echo Hello</pre>
         </details>
 
         <details>
-            <summary>Single-press key without output</summary>
+            <summary>Output suppression</summary>
             <pre>
 [c]
 label = hello
@@ -70,6 +70,19 @@ command = unlock</pre>
             <p>The application provides special commands for enabling and disabling keyboard input.</p>
             <p>When the "l" key is pressed, run <code>lock</code>. The state will change from unlocked to locked.</p>
             <p>When pressed again, run <code>unlock</code> to return to the unlocked state.</p>
+        </details>
+
+        <details>
+            <summary>Custom timeout</summary>
+            <pre>
+[j]
+label = hello3
+command = echo Hello world
+timeout = 60</pre>
+
+            <p>This command is allowed to run for 60 seconds.</p>
+            <p>The default timeout is 10 seconds.</p>
+            <p>When the timeout is exceeded, the command is killed.</p>
         </details>
     </div>
 </main>

@@ -11,13 +11,14 @@ import (
 )
 
 type Key struct {
-	Name         string
-	Label        string
-	Command      []string
-	States       []string
-	Toggle       bool
-	ShowOutput   bool
-	CommandIndex int8
+	Name           string
+	Label          string
+	Command        []string
+	States         []string
+	Toggle         bool
+	ShowOutput     bool
+	CommandIndex   int8
+	TimeoutSeconds int
 }
 
 func NewKeyFromSection(s *ini.Section) *Key {
@@ -25,12 +26,13 @@ func NewKeyFromSection(s *ini.Section) *Key {
 	states := s.Key("state").ValueWithShadows()
 
 	k := &Key{
-		Name:       s.Name(),
-		Label:      s.Key("label").MustString(""),
-		Command:    commands,
-		States:     states,
-		ShowOutput: s.Key("output").MustBool(true),
-		Toggle:     len(commands) > 1,
+		Name:           s.Name(),
+		Label:          s.Key("label").MustString(""),
+		Command:        commands,
+		States:         states,
+		ShowOutput:     s.Key("output").MustBool(true),
+		Toggle:         len(commands) > 1,
+		TimeoutSeconds: s.Key("timeout").MustInt(10),
 	}
 
 	if k.Name == "" {
@@ -79,7 +81,7 @@ func (k *Key) RunCommand() ([]byte, error) {
 
 	log.Printf("Running command: %s", k.CurrentCommand())
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(k.TimeoutSeconds)*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "sh", "-c", k.CurrentCommand())
