@@ -1,7 +1,7 @@
 .PHONY: build lint lint-go lint-js setup watch
 
 run:
-	go run . server
+	go run . start
 
 build:
 	go build

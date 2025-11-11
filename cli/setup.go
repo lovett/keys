@@ -58,7 +58,7 @@ func installSystemdUserService() error {
 		ExecStart        string
 		WorkingDirectory string
 	}{
-		ExecStart:        fmt.Sprintf("%s server", execPath),
+		ExecStart:        fmt.Sprintf("%s start", execPath),
 		WorkingDirectory: home,
 	}
 

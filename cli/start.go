@@ -13,16 +13,16 @@ import (
 
 var flagSet *flag.FlagSet
 
-func Server(cfg *config.Config, args []string) int {
+func Start(cfg *config.Config, args []string) int {
 	flagSet = flag.NewFlagSet("server", flag.ExitOnError)
 
-	port := flagSet.Int("port", 4004, "Server port")
-	publicUrl := flagSet.String("url", "http://localhost:4004", "Server URL")
+	port := flagSet.Int("port", 4004, "Web server port")
+	publicUrl := flagSet.String("url", "http://localhost:4004", "Web server URL")
 	inputs := flagSet.String("inputs", "browser,keyboard", "Where to listen for input")
 
 	cfg.PublicUrl = *publicUrl
 
-	flagSet.Usage = serverUsage
+	flagSet.Usage = startUsage
 	flagSet.Parse(args)
 
 	if strings.Contains(*inputs, "keyboard") {
@@ -37,8 +37,8 @@ func Server(cfg *config.Config, args []string) int {
 	return 0
 }
 
-func serverUsage() {
-	fmt.Fprint(os.Stderr, "Start the web server and listen for keyboard input.\n\n")
+func startUsage() {
+	fmt.Fprint(os.Stderr, "Launch the web server and listen for keyboard input.\n\n")
 
 	fmt.Fprint(os.Stderr, "Options\n")
 	flagSet.PrintDefaults()

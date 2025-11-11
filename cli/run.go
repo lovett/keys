@@ -11,7 +11,7 @@ import (
 func Run() int {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		os.Stderr.WriteString("Could not determine config dir. Giving up.")
+		os.Stderr.WriteString("Could not determine config dir. Giving up.\n")
 		return 1
 	}
 
@@ -44,10 +44,10 @@ func Run() int {
 		return Setup(os.Args[2:])
 	case "select":
 		return Select(cfg, os.Args[2:])
-	case "server":
-		return Server(cfg, os.Args[2:])
+	case "start":
+		return Start(cfg, os.Args[2:])
 	default:
-		topUsage()
+		os.Stderr.WriteString("Command not specified. Run keys --help for available commands.\n")
 		return 1
 	}
 }
@@ -58,8 +58,8 @@ func topUsage() {
 Commands:
   select keyboard
         Choose which keyboard to use for input
-  server
-        Start the webserver and keyboard listener
+  start
+        Launch the webserver and keyboard listener
   setup
         Install a startup service. Linux/systemd only
   test key
