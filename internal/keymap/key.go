@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"os/exec"
-	"strings"
 	"time"
 
 	"gopkg.in/ini.v1"
@@ -72,23 +71,16 @@ func (k *Key) UpdateCommandIndex() {
 }
 
 func (k *Key) RunCommand() ([]byte, error) {
+	if len(k.CurrentCommand()) == 0 {
+		return nil, errors.New("key command is empty, nothing to run")
+	}
+
 	log.Printf("Running command: %s", k.CurrentCommand())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	commandParts := strings.Split(k.CurrentCommand(), " ")
-
-	var cmd *exec.Cmd
-
-	switch len(commandParts) {
-	case 0:
-		return nil, errors.New("command not specified")
-	case 1:
-		cmd = exec.CommandContext(ctx, commandParts[0])
-	default:
-		cmd = exec.CommandContext(ctx, commandParts[0], commandParts[1:]...)
-	}
+	cmd := exec.CommandContext(ctx, "sh", "-c", k.CurrentCommand())
 
 	k.UpdateCommandIndex()
 
