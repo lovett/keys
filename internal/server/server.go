@@ -190,15 +190,16 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if len(stdout) == 0 {
-		w.WriteHeader(http.StatusNoContent)
-	}
-
 	if key.Toggle {
 		sound.PlayToggleSound(s.Config, key)
 		w.Header().Set("X-Keys-State", key.CurrentState())
 	} else {
 		sound.PlayConfirmationSound(s.Config)
+	}
+
+	if len(stdout) == 0 || !key.ShowOutput {
+		w.WriteHeader(http.StatusNoContent)
+		return
 	}
 
 	if bytes.ContainsRune(stdout, '<') && bytes.ContainsRune(stdout, '>') {

@@ -26,13 +26,24 @@
         <h2>Examples</h2>
 
         <details>
-            <summary>Single-press key</summary>
+            <summary>Single-press key with output</summary>
             <pre>
 [h]
 label = hello
 command = echo Hello</pre>
 
-            <p>When the "h" key is pressed, run <code>echo Hello</code>.</p>
+            <p>When the "h" key is pressed, run <code>echo Hello</code>. By default, command output is displayed.</p>
+        </details>
+
+        <details>
+            <summary>Single-press key without output</summary>
+            <pre>
+[c]
+label = hello
+command = curl http://example.com
+output = off</pre>
+
+            <p>When the "c" key is pressed, run <code>curl http://example.com</code> without showing its output.</p>
         </details>
 
         <details>

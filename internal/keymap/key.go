@@ -16,6 +16,7 @@ type Key struct {
 	Command      []string
 	States       []string
 	Toggle       bool
+	ShowOutput   bool
 	CommandIndex int8
 }
 
@@ -24,11 +25,12 @@ func NewKeyFromSection(s *ini.Section) *Key {
 	states := s.Key("state").ValueWithShadows()
 
 	k := &Key{
-		Name:    s.Name(),
-		Label:   s.Key("label").MustString(""),
-		Command: commands,
-		States:  states,
-		Toggle:  len(commands) > 1,
+		Name:       s.Name(),
+		Label:      s.Key("label").MustString(""),
+		Command:    commands,
+		States:     states,
+		ShowOutput: s.Key("output").MustBool(true),
+		Toggle:     len(commands) > 1,
 	}
 
 	if k.Name == "" {
