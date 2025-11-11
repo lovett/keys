@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"text/template"
 )
 
 func Setup(args []string) int {
@@ -28,11 +29,6 @@ func Setup(args []string) int {
 }
 
 func installSystemdUserService() error {
-	asset, err := asset.ReadAsset("assets/keys.service")
-	if err != nil {
-		return err
-	}
-
 	home, err := os.UserHomeDir()
 
 	if err != nil {
@@ -40,17 +36,33 @@ func installSystemdUserService() error {
 	}
 
 	destinationDir := filepath.Join(home, ".config", "systemd", "user")
-	destinationPath := filepath.Join(destinationDir, filepath.Base(asset.Path))
+	destinationPath := filepath.Join(destinationDir, "keys.service")
 
 	if err := os.MkdirAll(destinationDir, os.ModePerm); err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(destinationPath, asset.Bytes, os.ModePerm); err != nil {
+	f, err := os.Create(destinationPath)
+	if err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll(filepath.Join(home, "Documents", "Keys"), os.ModePerm); err != nil {
+	template := template.Must(template.ParseFS(asset.AssetFS, "assets/keys.service"))
+
+	execPath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+
+	templateVars := struct {
+		ExecStart        string
+		WorkingDirectory string
+	}{
+		ExecStart:        fmt.Sprintf("%s server", execPath),
+		WorkingDirectory: home,
+	}
+
+	if err := template.Execute(f, templateVars); err != nil {
 		return err
 	}
 

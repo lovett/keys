@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/Documents/Keys
-ExecStart=/usr/local/bin/keys
+WorkingDirectory={{ .WorkingDirectory }}
+ExecStart={{ .ExecStart }}
 Restart=on-failure
 RestartSec=10
 
