@@ -162,7 +162,9 @@ func fire(c chan *EventPair, cfg *config.Config) {
 	}
 
 	for pair := range c {
-		codeName := evdev.CodeName(pair.Event.Type, pair.Event.Code)
+		// Because the mute key on an Apple keyboard showed up as "mute/min_interesting".
+		codeName := strings.SplitN(evdev.CodeName(pair.Event.Type, pair.Event.Code), "/", 2)[0]
+
 		if cfg.KeyboardLocked {
 			log.Printf("Ignoring keypress of %s because keyboard is locked", codeName)
 			continue
