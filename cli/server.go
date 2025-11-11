@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"keys/internal/config"
-	"keys/internal/keyboard"
+	"keys/internal/device"
 	"keys/internal/server"
 	"keys/internal/sound"
 	"os"
@@ -26,12 +26,12 @@ func Server(cfg *config.Config, args []string) int {
 	flagSet.Parse(args)
 
 	if strings.Contains(*inputs, "keyboard") {
-		go keyboard.StartKeyboardListener(cfg)
+		go device.Listen(cfg)
 	}
 
 	if strings.Contains(*inputs, "browser") {
 		sound.LoadSounds()
-		server.StartServer(cfg, *port)
+		server.Serve(cfg, *port)
 	}
 
 	return 0

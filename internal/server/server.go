@@ -18,7 +18,7 @@ type Server struct {
 	Config        *config.Config
 }
 
-func StartServer(cfg *config.Config, port int) {
+func Serve(cfg *config.Config, port int) {
 	s := Server{
 		ServerAddress: fmt.Sprintf(":%d", port),
 		Config:        cfg,

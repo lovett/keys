@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 	"keys/internal/config"
-	"keys/internal/keyboard"
+	"keys/internal/device"
 	"os"
 )
 
@@ -15,7 +15,7 @@ func Select(cfg *config.Config, args []string) int {
 
 	switch target {
 	case "keyboard":
-		keyboard, err := keyboard.PromptForKeyboard()
+		keyboard, err := device.Prompt()
 
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())

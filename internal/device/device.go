@@ -1,4 +1,4 @@
-package keyboard
+package device
 
 import (
 	"bufio"
@@ -23,7 +23,7 @@ type EventPair struct {
 	Path  string
 }
 
-func StartKeyboardListener(cfg *config.Config) {
+func Listen(cfg *config.Config) {
 
 	if !userInGroup("input") {
 		log.Fatal("Current user doesn't belong to input group")
@@ -48,7 +48,7 @@ func StartKeyboardListener(cfg *config.Config) {
 
 		cfg.KeyboardFound = true
 		wg.Add(1)
-		go listen(device, c, &wg, cfg)
+		go listener(device, c, &wg, cfg)
 	}
 
 	if cfg.KeyboardFound {
@@ -56,7 +56,7 @@ func StartKeyboardListener(cfg *config.Config) {
 	} else {
 		sleepDuration := time.Duration(10 * time.Second)
 		time.Sleep(sleepDuration)
-		StartKeyboardListener(cfg)
+		Listen(cfg)
 	}
 }
 
@@ -85,7 +85,7 @@ func userInGroup(groupName string) bool {
 	return false
 }
 
-func PromptForKeyboard() (*string, error) {
+func Prompt() (*string, error) {
 	devices := ListDevices()
 
 	if len(devices) == 0 {
@@ -182,7 +182,7 @@ func fire(c chan *EventPair, cfg *config.Config) {
 	}
 }
 
-func listen(path string, c chan *EventPair, wg *sync.WaitGroup, cfg *config.Config) {
+func listener(path string, c chan *EventPair, wg *sync.WaitGroup, cfg *config.Config) {
 	defer wg.Done()
 
 	deviceName := deviceName(path)
@@ -218,7 +218,7 @@ func listen(path string, c chan *EventPair, wg *sync.WaitGroup, cfg *config.Conf
 		event, err := device.ReadOne()
 		if err != nil {
 			log.Printf("Failed to read keyboard input: %s", err)
-			StartKeyboardListener(cfg)
+			Listen(cfg)
 			return
 		}
 
