@@ -2,12 +2,11 @@ package cli
 
 import (
 	"flag"
-	"fmt"
 	"keys/internal/config"
 	"keys/internal/device"
 	"keys/internal/server"
 	"keys/internal/sound"
-	"os"
+	"log"
 	"strings"
 )
 
@@ -23,7 +22,9 @@ func Start(cfg *config.Config, args []string) int {
 	cfg.PublicUrl = *publicUrl
 
 	flagSet.Usage = startUsage
-	flagSet.Parse(args)
+	if err := flagSet.Parse(args); err != nil {
+		log.Println(err)
+	}
 
 	if strings.Contains(*inputs, "keyboard") {
 		go device.Listen(cfg)
@@ -38,8 +39,10 @@ func Start(cfg *config.Config, args []string) int {
 }
 
 func startUsage() {
-	fmt.Fprint(os.Stderr, "Launch the web server and listen for keyboard input.\n\n")
+	log.SetFlags(0)
+	log.SetPrefix("")
+	log.Print("Launch the web server and listen for keyboard input.\n\n")
 
-	fmt.Fprint(os.Stderr, "Options\n")
+	log.Print("Options\n")
 	flagSet.PrintDefaults()
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"keys/internal/config"
 	"keys/internal/device"
+	"log"
 	"os"
 )
 
@@ -18,15 +19,13 @@ func Select(cfg *config.Config, args []string) int {
 		keyboard, err := device.Prompt()
 
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			os.Exit(1)
+			log.Fatal(err)
 		}
 
 		err = cfg.Keymap.StoreKeyboard(*keyboard)
 
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			os.Exit(1)
+			log.Fatal(err)
 		}
 
 		fmt.Printf("Updated %s\n", cfg.Keymap.Filename)

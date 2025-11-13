@@ -6,7 +6,6 @@ import (
 	"keys/internal/device"
 	"keys/internal/sound"
 	"log"
-	"os"
 )
 
 func Test(cfg *config.Config, args []string) int {
@@ -39,8 +38,7 @@ func TestSound() {
 		fmt.Printf("Press ENTER to play the %s sound ", name)
 		_, err := fmt.Scanln()
 		if err != nil {
-			fmt.Fprint(os.Stderr, err.Error())
-			os.Exit(1)
+			log.Fatal(err)
 		}
 
 		sound.SoundMap[name].Play()
@@ -54,8 +52,7 @@ func TestSound() {
 		fmt.Println("\nTest complete. Press Control-c to exit, or ENTER to test again.")
 		_, err := fmt.Scanln()
 		if err != nil {
-			fmt.Fprint(os.Stderr, err.Error())
-			os.Exit(1)
+			log.Fatal(err)
 		}
 	}
 }

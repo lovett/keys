@@ -1,12 +1,10 @@
 package sound
 
 import (
-	"fmt"
 	"keys/internal/asset"
 	"keys/internal/config"
 	"keys/internal/keymap"
 	"log"
-	"os"
 	"time"
 
 	"github.com/gopxl/beep"
@@ -32,7 +30,7 @@ func initializeSpeaker(s *Sound) {
 	}
 
 	if err := speaker.Init(s.Format.SampleRate, s.Format.SampleRate.N(time.Second/30)); err != nil {
-		fmt.Fprint(os.Stderr, err)
+		log.Print(err)
 	} else {
 		speakerInitialized = true
 	}

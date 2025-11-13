@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"keys/internal/asset"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -11,17 +12,20 @@ import (
 )
 
 func Setup(args []string) int {
+	log.SetFlags(0)
+	log.SetPrefix("")
+
 	var err error
 
 	switch runtime.GOOS {
 	case "linux":
 		err = installSystemdUserService()
 	default:
-		err = errors.New("Not supported on this OS")
+		err = errors.New("not supported on this OS")
 	}
 
 	if err != nil {
-		os.Stderr.WriteString(err.Error())
+		log.Println(err.Error())
 		return 1
 	}
 

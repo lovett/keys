@@ -4,14 +4,18 @@ import (
 	"flag"
 	"keys/internal/asset"
 	"keys/internal/config"
+	"log"
 	"os"
 	"path/filepath"
 )
 
 func Run() int {
+	log.SetFlags(0)
+	log.SetPrefix("")
+
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		os.Stderr.WriteString("Could not determine config dir. Giving up.\n")
+		log.Println("Could not determine config dir. Giving up.")
 		return 1
 	}
 
@@ -22,13 +26,13 @@ func Run() int {
 	flag.Parse()
 
 	if *versionFlag {
-		os.Stdout.Write(asset.ReadVersion())
+		log.Println(string(asset.ReadVersion()))
 		return 0
 	}
 
 	cfg, err := config.NewConfig(*configFlag)
 	if err != nil {
-		os.Stderr.WriteString("Could not parse config. Giving up.")
+		log.Println("Could not parse config. Giving up.")
 		return 1
 	}
 
@@ -47,13 +51,13 @@ func Run() int {
 	case "start":
 		return Start(cfg, os.Args[2:])
 	default:
-		os.Stderr.WriteString("Command not specified. Run keys --help for available commands.\n")
+		log.Println("Command not specified. Run keys --help for available commands.")
 		return 1
 	}
 }
 
 func topUsage() {
-	os.Stderr.WriteString(`Use a regular keyboard as a macro pad to run arbitrary commands headlessly.
+	log.Print(`Use a regular keyboard as a macro pad to run arbitrary commands headlessly.
 
 Commands:
   select keyboard
