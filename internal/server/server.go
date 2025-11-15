@@ -165,6 +165,7 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 
 	if key == nil {
 		s.sendError(w, "Invalid key")
+		sound.PlayErrorSound(s.Config)
 		return
 	}
 
