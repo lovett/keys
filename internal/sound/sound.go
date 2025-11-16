@@ -59,7 +59,7 @@ func PlayConfirmationSound(cfg *config.Config, key *keymap.Key) {
 		return
 	}
 
-	if !key.PostConfirm {
+	if !key.Confirmation {
 		return
 	}
 
