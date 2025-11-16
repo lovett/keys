@@ -24,6 +24,13 @@ window.addEventListener('keyup', (e) => {
     if (e.key === 'Escape') {
         window.dispatchEvent(new CustomEvent('app:clear'));
         window.dispatchEvent(new CustomEvent('app:cancel'));
+        return;
+    }
+
+    if (e.key === 'E') {
+        const node = document.querySelector('form.edit');
+        if (node) node.submit();
+        return;
     }
 
     if (e.ctrlKey || e.shiftKey || e.altKey) return;
