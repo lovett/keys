@@ -51,10 +51,15 @@ func LoadSounds() {
 	SoundMap["error"] = SoundBuffer("assets/alert_error-03.ogg")
 	SoundMap["up"] = SoundBuffer("assets/state-change_confirm-up.ogg")
 	SoundMap["down"] = SoundBuffer("assets/state-change_confirm-down.ogg")
+	SoundMap["tap"] = SoundBuffer("assets/navigation_forward-selection-minimal.ogg")
 }
 
-func PlayConfirmationSound(cfg *config.Config) {
+func PlayConfirmationSound(cfg *config.Config, key *keymap.Key) {
 	if !cfg.SoundAllowed() {
+		return
+	}
+
+	if !key.PostConfirm {
 		return
 	}
 
@@ -82,6 +87,14 @@ func PlayToggleSound(cfg *config.Config, key *keymap.Key) {
 	} else {
 		SoundMap["up"].Play()
 	}
+}
+
+func PlayTapSound(cfg *config.Config, key *keymap.Key) {
+	if !cfg.SoundAllowed() {
+		return
+	}
+
+	SoundMap["tap"].Play()
 }
 
 func SoundBuffer(path string) *Sound {
