@@ -24,7 +24,12 @@
 <div id="status"></div>
 <main>
     <ul id="keys" class="{{ if .KeyboardLocked }}locked{{end}}">
+        {{ $rowName := "" }}
         {{range .Keymap.Keys }}
+        {{ if ne .Row $rowName }}
+        <li class="row-header">{{ .Row }}</li>
+        {{ $rowName = .Row }}
+        {{ end }}
         <li>
             {{/* Href is relative due to CORS */}}
             <a class="key" data-keypress="{{ .Name }}" href="/trigger/{{ .Name }}" {{ if .IsLockKey }}data-lock-key{{end}}>

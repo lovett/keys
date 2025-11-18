@@ -113,7 +113,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('save');
     if (el) {
         el.addEventListener('click', () => {
-            document.querySelector('main.editor form').submit();
+            document.querySelector('#editor form').submit();
         });
     }
 });

@@ -135,9 +135,16 @@ func (k *Keymap) IsPrefix(keyBuffer []string) bool {
 }
 
 func (k *Keymap) Keys() func(yield func(*Key) bool) {
+	var rowName string
+
 	return func(yield func(*Key) bool) {
 		for _, s := range k.Content.Sections() {
 			if s.Name() == ini.DefaultSection {
+				continue
+			}
+
+			if strings.HasPrefix(s.Name(), "--") {
+				rowName = strings.Trim(s.Name(), "--")
 				continue
 			}
 
@@ -146,6 +153,10 @@ func (k *Keymap) Keys() func(yield func(*Key) bool) {
 			if key == nil {
 				continue
 			}
+
+			key.Row = rowName
+
+			fmt.Println(key.Row)
 
 			if !yield(key) {
 				return

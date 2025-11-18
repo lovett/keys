@@ -20,6 +20,7 @@ type Key struct {
 	CommandIndex   int8
 	TimeoutSeconds int
 	Confirmation   bool
+	Row            string
 }
 
 func NewKeyFromSection(s *ini.Section) *Key {
@@ -35,6 +36,7 @@ func NewKeyFromSection(s *ini.Section) *Key {
 		Toggle:         len(commands) > 1,
 		TimeoutSeconds: s.Key("timeout").MustInt(10),
 		Confirmation:   s.Key("confirmation").MustBool(true),
+		Row:            s.Key("row").MustString(""),
 	}
 
 	if k.Name == "" {
