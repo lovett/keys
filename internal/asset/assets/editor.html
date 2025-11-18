@@ -17,12 +17,34 @@
 {{ end }}
 
 {{ define "main" }}
-<main class="editor">
+<main id="editor">
     <form method="post" action="/edit">
         <textarea name="content" autofocus>{{ printf "%s" .Raw }}</textarea>
     </form>
 
-    <div id="examples">
+    <div id="sidebar">
+        <h2>Options</h2>
+
+        <dl>
+            <dt>label</dt>
+            <dd>A custom name for the key shown in the browser UI.</dd>
+
+            <dt>command</dt>
+            <dd>The command to run when the key is pressed. If used multiple times, the key becomes a toggle.</dd>
+
+            <dt>timeout</dt>
+            <dd>Max seconds to wait for command to run. <em>Default: 10</em></dd>
+
+            <dt>output</dt>
+            <dd>Display command stdout in browser. <em>Default: on</em></dd>
+
+            <dt>state</dt>
+            <dd>Name for a command in a multi-command key. Use multiple times, one per name. The nth state is names the nth command.</dd>
+
+            <dt>confirmation</dt>
+            <dd>Play a sound after the command runs. <em>Default: on</em></dd>
+        </dl>
+
         <h2>Examples</h2>
         <details>
             <summary>Single-press key</summary>
@@ -31,8 +53,7 @@
 label = hello
 command = echo Hello</pre>
 
-            <p>When the "h" key is pressed, run <code>echo Hello</code>.</p>
-            <p>By default, command output is displayed.</p>
+            <p>When the "h" key is pressed, run <code>echo</code>.</p>
         </details>
 
         <details>
@@ -43,8 +64,7 @@ label = hello
 command = curl http://example.com
 output = off</pre>
 
-            <p>When the "c" key is pressed, run <code>curl http://example.com</code></p>
-            <p>Command output is not shown.</p>
+            <p>When the "c" key is pressed, run <code>curl</code> but do not show stdout.</p>
         </details>
 
         <details>
@@ -54,7 +74,7 @@ output = off</pre>
 label = hello2
 command = echo Hello world</pre>
 
-            <p>When the "h" and "w" keys are pressed in quick succession, run <code>echo Hello world</code>.</p>
+            <p>When the "h" and "w" keys are pressed in quick succession, run <code>echo</code>.</p>
         </details>
 
 
@@ -67,8 +87,7 @@ state   = unlocked
 command = lock
 state   = locked
 command = unlock</pre>
-            <p>The application provides special commands for enabling and disabling keyboard input.</p>
-            <p>When the "l" key is pressed, run <code>lock</code>. The state will change from unlocked to locked.</p>
+            <p>When the "l" key is pressed, run <code>lock</code>.</p>
             <p>When pressed again, run <code>unlock</code> to return to the unlocked state.</p>
         </details>
 
@@ -80,9 +99,7 @@ label = hello3
 command = echo Hello world
 timeout = 60</pre>
 
-            <p>This command is allowed to run for 60 seconds.</p>
-            <p>The default timeout is 10 seconds.</p>
-            <p>When the timeout is exceeded, the command is killed.</p>
+            <p><code>echo</code> has 60 seconds to run before the process is killed.</p>
         </details>
     </div>
 </main>
