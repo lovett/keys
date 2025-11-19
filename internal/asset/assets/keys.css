@@ -110,6 +110,19 @@ header #config .label {
     font-variant: small-caps;
 }
 
+header #config .on .icon {
+    color: #87C09B;
+}
+
+header #config .off .icon {
+    color: #830B27;
+}
+
+header #config .locked .icon {
+    color: #FFD166;
+
+}
+
 header #config .icon {
     width: 1.5em;
     height: 1.5em;
