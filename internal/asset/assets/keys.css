@@ -172,8 +172,7 @@ h2:first-of-type {
 }
 
 #status.locked {
-    background-color: purple;
-    color: #fff;
+    background-color: #FFD166;
 }
 
 #status .icon {
