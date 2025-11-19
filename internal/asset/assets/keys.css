@@ -378,7 +378,7 @@ ul {
 }
 
 #editor dd em {
-    white-space: no-wrap;
+    white-space: nowrap;
 }
 
 .focus-candidate {
