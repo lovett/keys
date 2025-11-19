@@ -3,14 +3,16 @@ package server
 import (
 	"bytes"
 	"fmt"
-	"html/template"
+	htmltemplate "html/template"
 	"keys/internal/asset"
 	"keys/internal/config"
+	"keys/internal/keymap"
 	"keys/internal/sound"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	texttemplate "text/template"
 )
 
 type Server struct {
@@ -44,7 +46,63 @@ func Serve(cfg *config.Config, port int) {
 func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	s.logRequest(r)
 
-	templates := template.Must(template.ParseFS(asset.AssetFS, "assets/layout.html", "assets/keyboard.html"))
+	if r.Header.Get("accept") == "text/plain" {
+		s.dashboardTextWriter(w, r)
+	} else {
+		s.dashboardHtmlWriter(w)
+	}
+}
+
+func (s *Server) dashboardTextWriter(w http.ResponseWriter, r *http.Request) {
+	var output bytes.Buffer
+
+	query := r.URL.Query()
+	label := strings.ToLower(query.Get("label"))
+	command := strings.ToLower(query.Get("command"))
+	keyboardKey := strings.ToLower(query.Get("key"))
+
+	funcMap := texttemplate.FuncMap{
+		"queryMatch": func(k keymap.Key) bool {
+			if label != "" && !strings.HasPrefix(strings.ToLower(k.Label), label) {
+				return false
+			}
+
+			if command != "" && !strings.Contains(strings.ToLower(strings.Join(k.Command, " ")), command) {
+				return false
+			}
+
+			if keyboardKey != "" && !strings.Contains(strings.ToLower(k.Name), keyboardKey) {
+				return false
+			}
+
+			return true
+		},
+	}
+
+	tmpl := texttemplate.New("keyboard.txt").Funcs(funcMap)
+	tmpl, err := tmpl.ParseFS(asset.AssetFS, "assets/keyboard.txt")
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Fatalf("unable to parse text template: %v", err)
+		return
+	}
+
+	if err := tmpl.ExecuteTemplate(&output, "keyboard.txt", s.Config); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		if _, err = w.Write([]byte(err.Error())); err != nil {
+			log.Fatalf("unable to write error response body: %v", err)
+		}
+	} else {
+		w.Header().Set("Content-Type", "text/html")
+		if _, err = w.Write(output.Bytes()); err != nil {
+			log.Fatalf("unable to write response body: %v", err)
+		}
+	}
+}
+
+func (s *Server) dashboardHtmlWriter(w http.ResponseWriter) {
+	templates := htmltemplate.Must(htmltemplate.ParseFS(asset.AssetFS, "assets/layout.html", "assets/keyboard.html"))
 
 	var output bytes.Buffer
 	if err := templates.ExecuteTemplate(&output, "layout.html", s.Config); err != nil {
@@ -85,7 +143,7 @@ func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) editHandler(w http.ResponseWriter, r *http.Request) {
 	s.logRequest(r)
 
-	templates := template.Must(template.ParseFS(asset.AssetFS, "assets/layout.html", "assets/editor.html"))
+	templates := htmltemplate.Must(htmltemplate.ParseFS(asset.AssetFS, "assets/layout.html", "assets/editor.html"))
 
 	var output bytes.Buffer
 
