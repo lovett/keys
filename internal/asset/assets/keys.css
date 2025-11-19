@@ -171,10 +171,6 @@ h2:first-of-type {
     background-color: lemonchiffon;
 }
 
-#status.locked {
-    background-color: #FFD166;
-}
-
 #status .icon {
     width: 2em;
     height: 2em;

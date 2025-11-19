@@ -41,7 +41,6 @@ window.addEventListener('keyup', (e) => {
 
 
     if (document.querySelector('#keys.locked')) {
-        window.dispatchEvent(new CustomEvent('app:locked'));
         return;
     }
 
@@ -82,10 +81,6 @@ window.addEventListener('app:clear', () => {
 
 window.addEventListener('app:start', () => {
     setStatus('Running…', 'start');
-});
-
-window.addEventListener('app:locked', () => {
-    setStatus('The keyboard is locked.', 'locked');
 });
 
 window.addEventListener('app:success', (e) => {
@@ -131,7 +126,6 @@ function setStatus(message, type) {
     if (type === 'fail') icon = 'skull';
     if (type === 'success') icon = 'star';
     if (type === 'start') icon = 'wait';
-    if (type === 'locked') icon = 'lock';
     clone.querySelector('.icon use').setAttribute('xlink:href', `#icon-${icon}`);
 
     container.replaceChildren(clone);
@@ -168,6 +162,13 @@ async function runTrigger(node) {
         });
         window.dispatchEvent(event);
 
+        if (locked) {
+            document.getElementById('keys').classList.add('locked');
+            document.getElementById('config-locked').clasList.add('locked');
+        } else {
+            document.getElementById('keys').classList.remove('locked');
+            document.getElementById('config-locked').classList.remove('locked');
+        }
         node.querySelector('.state').textContent = state;
     }
 }
