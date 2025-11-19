@@ -33,12 +33,7 @@ window.addEventListener('keyup', (e) => {
         return;
     }
 
-    if (e.ctrlKey || e.shiftKey || e.altKey) return;
-
     if (['INPUT', 'SELECT', 'TEXTAREA'].indexOf(e.target.nodeName) > -1) return;
-
-    if (['Shift', 'Alt', 'Meta', 'Control', 'Backspace'].indexOf(e.key) > -1) return;
-
 
     if (document.querySelector('#keys.locked')) {
         return;
