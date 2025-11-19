@@ -71,9 +71,8 @@ func (k *Key) UpdateCommandIndex() {
 		return
 	}
 
-	if k.CommandIndex == 0 {
-		k.CommandIndex = 1
-	} else {
+	k.CommandIndex += 1
+	if k.CommandIndex >= int8(len(k.Command)) {
 		k.CommandIndex = 0
 	}
 }
