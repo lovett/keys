@@ -95,7 +95,7 @@ func (s *Server) dashboardTextWriter(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf("unable to write error response body: %v", err)
 		}
 	} else {
-		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Content-Type", "text/plain")
 		if _, err = w.Write(output.Bytes()); err != nil {
 			log.Fatalf("unable to write response body: %v", err)
 		}
