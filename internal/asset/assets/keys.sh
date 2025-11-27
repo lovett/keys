@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
-if [ -z "$KEYS_URL" ]; then
-    KEYS_URL="http://localhost:4004"
-fi
+set -eu
+
+REMOTE_URL="{{ .PublicUrl }}"
 
 if ! command -v curl >/dev/null 2>&1; then
     echo "Curl is not available. Cannot run.";
@@ -10,7 +10,7 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 list_keys() {
-    endpoint="$KEYS_URL"
+    endpoint="$REMOTE_URL"
     if [ -n "$1" ]; then
         endpoint="$endpoint?$1"
     fi
@@ -18,17 +18,17 @@ list_keys() {
 }
 
 press_key() {
-    curl -X POST -H "Accept: text/plain" "$KEYS_URL/trigger/$1"
+    curl -X POST -H "Accept: text/plain" "$REMOTE_URL/trigger/$1"
 }
 
 usage() {
-    echo "A command-line client for the keys application."
+    echo "A command-line client for $REMOTE_URL"
     echo ""
     echo "Usage:" >&2
     echo "  press KEY:  Tell the server to press the key KEY." >&2
     echo "  list: Display the full list of available keys." >&2
     echo ""
-    echo "List Filters"
+    echo "Filters for list command:"
     echo "  --label VALUE: Key label starts with VALUE" >&2
     echo "  --command VALUE: Key command contains VALUE" >&2
     echo "  --key VALUE: Key name contains VALUE" >&2

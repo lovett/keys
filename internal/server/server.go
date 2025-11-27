@@ -38,6 +38,7 @@ func Serve(cfg *config.Config, port int) {
 	http.HandleFunc("GET /version", s.versionHandler)
 	http.HandleFunc("POST /edit", s.saveHandler)
 	http.HandleFunc("POST /trigger/{key}", s.triggerHandler)
+	http.HandleFunc("GET /util/sh", s.shellHandler)
 	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)
 	log.Printf("Config file is %s", cfg.Keymap.Filename)
 	log.Fatal(http.ListenAndServe(s.ServerAddress, nil))
@@ -112,6 +113,32 @@ func (s *Server) dashboardHtmlWriter(w http.ResponseWriter) {
 		}
 	} else {
 		w.Header().Set("Content-Type", "text/html")
+		if _, err = w.Write(output.Bytes()); err != nil {
+			log.Fatalf("unable to write response body: %v", err)
+		}
+	}
+}
+
+func (s *Server) shellHandler(w http.ResponseWriter, r *http.Request) {
+	s.logRequest(r)
+
+	tmpl := texttemplate.New("keys.sh")
+	tmpl, err := tmpl.ParseFS(asset.AssetFS, "assets/keys.sh")
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Fatalf("unable to parse shell template: %v", err)
+		return
+	}
+
+	var output bytes.Buffer
+	if err := tmpl.ExecuteTemplate(&output, "keys.sh", s.Config); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		if _, err = w.Write([]byte(err.Error())); err != nil {
+			log.Fatalf("unable to write error response body: %v", err)
+		}
+	} else {
+		w.Header().Set("Content-Type", "text/plain")
 		if _, err = w.Write(output.Bytes()); err != nil {
 			log.Fatalf("unable to write response body: %v", err)
 		}

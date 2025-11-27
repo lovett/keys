@@ -19,12 +19,12 @@ func Start(cfg *config.Config, args []string) int {
 	publicUrl := flagSet.String("url", "http://localhost:4004", "Web server URL")
 	inputs := flagSet.String("inputs", "browser,keyboard", "Where to listen for input")
 
-	cfg.PublicUrl = *publicUrl
-
 	flagSet.Usage = startUsage
 	if err := flagSet.Parse(args); err != nil {
 		log.Println(err)
 	}
+
+	cfg.PublicUrl = *publicUrl
 
 	if strings.Contains(*inputs, "keyboard") {
 		go device.Listen(cfg)
