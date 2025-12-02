@@ -61,15 +61,15 @@ func topUsage() {
 
 Commands:
   select keyboard
-        Choose which keyboard to use for input
+        Choose which physical keyboard to use for input.
   start
-        Launch the webserver and keyboard listener
+        Launch the webserver and keyboard listener. Add --help for additional options.
   setup
-        Install a startup service. Linux/systemd only
+        Install a startup service. Linux/systemd only.
   test key
-        Test mode to see the name of a pressed key
+        Test mode to see the name of a pressed key.
   test sound
-        Test mode to see if sound output works
+        Test mode to see if sound output works.
 
 Options:
 `)
