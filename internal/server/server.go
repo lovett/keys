@@ -30,18 +30,29 @@ func Serve(cfg *config.Config, port int) {
 		log.Fatalf("Error during asset hashing: %s", err.Error())
 	}
 
-	http.HandleFunc("GET /{$}", s.dashboardHandler)
-	http.HandleFunc("GET /assets/favicon.svg", s.assetHandler)
-	http.HandleFunc("GET /assets/keys.css", s.assetHandler)
-	http.HandleFunc("GET /assets/keys.js", s.assetHandler)
-	http.HandleFunc("GET /edit", s.editHandler)
-	http.HandleFunc("GET /version", s.versionHandler)
-	http.HandleFunc("POST /edit", s.saveHandler)
-	http.HandleFunc("POST /trigger/{key}", s.triggerHandler)
-	http.HandleFunc("GET /util/sh", s.shellHandler)
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /{$}", s.dashboardHandler)
+	mux.HandleFunc("GET /assets/favicon.svg", s.assetHandler)
+	mux.HandleFunc("GET /assets/keys.css", s.assetHandler)
+	mux.HandleFunc("GET /assets/keys.js", s.assetHandler)
+	mux.HandleFunc("GET /edit", s.editHandler)
+	mux.HandleFunc("GET /version", s.versionHandler)
+	mux.HandleFunc("POST /edit", s.saveHandler)
+	mux.HandleFunc("POST /trigger/{key}", s.triggerHandler)
+	mux.HandleFunc("GET /util/sh", s.shellHandler)
 	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)
 	log.Printf("Config file is %s", cfg.Keymap.Filename)
-	log.Fatal(http.ListenAndServe(s.ServerAddress, nil))
+	log.Fatal(http.ListenAndServe(s.ServerAddress, serverHeaders(mux)))
+}
+
+func serverHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Server", "keys")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'")
+		w.Header().Set("X-Frame-Options", "DENY")
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
