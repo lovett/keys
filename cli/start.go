@@ -2,6 +2,7 @@ package cli
 
 import (
 	"flag"
+	"fmt"
 	"keys/internal/config"
 	"keys/internal/device"
 	"keys/internal/server"
@@ -16,7 +17,6 @@ func Start(cfg *config.Config, args []string) int {
 	flagSet = flag.NewFlagSet("server", flag.ExitOnError)
 
 	port := flagSet.Int("port", 4004, "Web server port")
-	publicUrl := flagSet.String("url", "http://localhost:4004", "Web server URL")
 	inputs := flagSet.String("inputs", "browser,keyboard", "Where to listen for input")
 
 	flagSet.Usage = startUsage
@@ -24,7 +24,7 @@ func Start(cfg *config.Config, args []string) int {
 		log.Println(err)
 	}
 
-	cfg.PublicUrl = *publicUrl
+	cfg.PublicUrl = fmt.Sprintf("http://localhost:%d", *port)
 
 	if strings.Contains(*inputs, "keyboard") {
 		go device.Listen(cfg)
