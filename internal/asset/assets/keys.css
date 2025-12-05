@@ -140,6 +140,16 @@ h2 {
     margin: 2em 0 0.5em 0;
 }
 
+h3 {
+    font-size: 1.1em;
+    margin-bottom: .5em;
+    font-style: italic;
+}
+
+h3 span {
+    font-weight: normal;
+}
+
 h2:first-of-type {
     margin-top: 0;
 }
