@@ -156,8 +156,6 @@ func (k *Keymap) Keys() func(yield func(*Key) bool) {
 
 			key.Row = rowName
 
-			fmt.Println(key.Row)
-
 			if !yield(key) {
 				return
 			}
