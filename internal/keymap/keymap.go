@@ -144,7 +144,7 @@ func (k *Keymap) Keys() func(yield func(*Key) bool) {
 			}
 
 			if strings.HasPrefix(s.Name(), "--") {
-				rowName = strings.Trim(s.Name(), "--")
+				rowName = strings.Trim(s.Name(), "-")
 				continue
 			}
 
