@@ -1,4 +1,4 @@
-.PHONY: build lint lint-go lint-js setup watch
+.PHONY: build lint lint-go lint-js lint-openapi setup watch
 
 run:
 	go run . start
@@ -6,13 +6,16 @@ run:
 build:
 	go build
 
-lint: lint-go lint-js
+lint: lint-go lint-js lint-openapi
 
 lint-go:
 	golangci-lint run
 
 lint-js:
-	biome lint internal/asset/assets/keys.js || true
+	biome lint internal/asset/assets/keys.js
+
+lint-openapi:
+	vacuum dashboard --watch internal/asset/assets/openapi.yaml
 
 setup:
 	sudo dnf install alsa-lib-devel golangci-lint
