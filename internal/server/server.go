@@ -37,17 +37,26 @@ func Serve(cfg *config.Config, port int) {
 	mux.HandleFunc("GET /assets/keys.css", s.assetHandler)
 	mux.HandleFunc("GET /assets/keys.js", s.assetHandler)
 	mux.HandleFunc("GET /edit", s.editHandler)
+	mux.HandleFunc("GET /openapi.yaml", s.openapiHandler)
 	mux.HandleFunc("GET /version", s.versionHandler)
 	mux.HandleFunc("POST /edit", s.saveHandler)
 	mux.HandleFunc("POST /trigger/{key}", s.triggerHandler)
 	mux.HandleFunc("GET /util/sh", s.shellHandler)
 	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)
 	log.Printf("Config file is %s", cfg.Keymap.Filename)
-	log.Fatal(http.ListenAndServe(s.ServerAddress, serverHeaders(mux)))
+	log.Fatal(http.ListenAndServe(s.ServerAddress, serverHeaders(mux, s.Config)))
 }
 
-func serverHeaders(next http.Handler) http.Handler {
+func serverHeaders(next http.Handler, config *config.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Forwarded-Proto") != "" && r.Header.Get("X-Forwarded-Host") != "" {
+			forwardedPublicUrl := fmt.Sprintf("%s://%s", r.Header.Get("X-Forwarded-Proto"), r.Header.Get("X-Forwarded-Host"))
+			if forwardedPublicUrl != config.PublicUrl {
+				config.PublicUrl = forwardedPublicUrl
+			}
+		}
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Server", "keys")
 		w.Header().Set("Content-Security-Policy", "default-src 'self'")
 		w.Header().Set("X-Frame-Options", "DENY")
@@ -322,7 +331,6 @@ func (s *Server) versionHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) sendError(w http.ResponseWriter, message string) {
 	w.WriteHeader(http.StatusUnprocessableEntity)
-	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write([]byte(message)); err != nil {
 		log.Fatalf("unable to write error response body: %v", err)
 	}
@@ -334,4 +342,32 @@ func (s *Server) logRequest(r *http.Request) {
 
 func (s *Server) logRequestWithStatus(r *http.Request, status int) {
 	log.Printf("%s %s -> %d", r.Method, r.RequestURI, status)
+}
+
+func (s *Server) openapiHandler(w http.ResponseWriter, r *http.Request) {
+	s.logRequest(r)
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	tmpl := texttemplate.New("openapi.yaml")
+	tmpl, err := tmpl.ParseFS(asset.AssetFS, "assets/openapi.yaml")
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Fatalf("unable to parse template: %v", err)
+		return
+	}
+
+	var output bytes.Buffer
+	if err := tmpl.ExecuteTemplate(&output, "openapi.yaml", s.Config); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		if _, err = w.Write([]byte(err.Error())); err != nil {
+			log.Fatalf("unable to write error response body: %v", err)
+		}
+	} else {
+		w.Header().Set("Content-Type", "application/yaml")
+		if _, err = w.Write(output.Bytes()); err != nil {
+			log.Fatalf("unable to write response body: %v", err)
+		}
+	}
 }

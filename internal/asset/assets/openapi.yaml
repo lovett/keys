@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=https://spec.openapis.org/oas/3.1/schema/2025-09-15
+openapi: "3.1.2"
+info:
+    title: "Keys"
+    description: Keys provides HTTP endpoints that can be called directly when browser or keyboard input isn't convenient.
+    version: "1.0.0"
+servers:
+    - url: "{{ .PublicUrl }}"
+tags:
+    - name: keymap
+    - name: trigger
+    - name: util
+    - name: version
+paths:
+    /:
+        get:
+            summary: Display keymap
+            description: A list of the keys that can be pressed.
+            tags:
+                - keymap
+            operationId: keymap
+            responses:
+                "200":
+                    description: The list of known keys.
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                        text/html:
+                            schema:
+                                type: string
+
+    /trigger/{key}:
+        post:
+            summary: Press one or more keys
+            description: The equivalent to pressing a key on the keyboard.
+            tags:
+                - trigger
+            operationId: trigger
+            parameters:
+                - name: key
+                  in: path
+                  required: true
+                  description: The physical keys to be pressed.
+                  schema:
+                      type: string
+                      example: h
+            responses:
+                "200":
+                    description: Stdout of the command associated with the specified key.
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: hello world
+                        text/html:
+                            schema:
+                                type: string
+                "204":
+                    description: Successful invocation of a key whose command produced no output, or was configured to suppress output.
+                "405":
+                    description: Unknown key.
+    /util/sh:
+        get:
+            summary: Shell script client
+            description: Trigger keypresses from the command line.
+            tags:
+                - util
+            operationId: util-sh
+            responses:
+                "200":
+                    description: The shell script.
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+    /version:
+        get:
+            summary: Version string
+            description: The application version and short Git hash of the currently-running server.
+            tags:
+                - version
+            operationId: version
+            responses:
+                "200":
+                    description: The version string.
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 1.0.0+abcd123
