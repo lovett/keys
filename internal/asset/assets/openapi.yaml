@@ -48,6 +48,15 @@ paths:
             responses:
                 "200":
                     description: Stdout of the command associated with the specified key.
+                    headers:
+                        X-Keys-State:
+                            description: If the pressed key is a toggle, its current state.
+                            schema:
+                                type: string
+                        X-Keys-Locked:
+                            description: If the pressed key's command was either lock or unlock, the current lock state as a boolean integer.
+                            schema:
+                                type: integer
                     content:
                         text/plain:
                             schema:
@@ -58,6 +67,11 @@ paths:
                                 type: string
                 "204":
                     description: Successful invocation of a key whose command produced no output, or was configured to suppress output.
+                    headers:
+                        X-Keys-State:
+                            description: If the pressed key is a toggle, its current state.
+                            schema:
+                                type: string
                 "405":
                     description: Unknown key.
     /util/sh:
