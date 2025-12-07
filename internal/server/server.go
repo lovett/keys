@@ -32,7 +32,7 @@ func Serve(cfg *config.Config, port int) {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /{$}", s.dashboardHandler)
+	mux.HandleFunc("GET /{$}", s.keymapHandler)
 	mux.HandleFunc("GET /assets/favicon.svg", s.assetHandler)
 	mux.HandleFunc("GET /assets/keys.css", s.assetHandler)
 	mux.HandleFunc("GET /assets/keys.js", s.assetHandler)
@@ -64,17 +64,17 @@ func serverHeaders(next http.Handler, config *config.Config) http.Handler {
 	})
 }
 
-func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) keymapHandler(w http.ResponseWriter, r *http.Request) {
 	s.logRequest(r)
 
 	if r.Header.Get("accept") == "text/plain" {
-		s.dashboardTextWriter(w, r)
+		s.keymapTextWriter(w, r)
 	} else {
-		s.dashboardHtmlWriter(w)
+		s.keymapHtmlWriter(w)
 	}
 }
 
-func (s *Server) dashboardTextWriter(w http.ResponseWriter, r *http.Request) {
+func (s *Server) keymapTextWriter(w http.ResponseWriter, r *http.Request) {
 	var output bytes.Buffer
 
 	query := r.URL.Query()
@@ -122,7 +122,7 @@ func (s *Server) dashboardTextWriter(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) dashboardHtmlWriter(w http.ResponseWriter) {
+func (s *Server) keymapHtmlWriter(w http.ResponseWriter) {
 	templates := htmltemplate.Must(htmltemplate.ParseFS(asset.AssetFS, "assets/layout.html", "assets/keyboard.html"))
 
 	var output bytes.Buffer
