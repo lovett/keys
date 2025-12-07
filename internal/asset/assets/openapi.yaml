@@ -54,7 +54,11 @@ paths:
                             schema:
                                 type: string
                         X-Keys-Locked:
-                            description: If the pressed key's command was either lock or unlock, the current lock state as a boolean integer.
+                            description: |
+                                If the pressed key's command was "lock" or "unlock",
+                                the current keyboard lock state as a boolean integer. A user-facing
+                                confirmation message is always produced by these commands,
+                                so they are never a 204.
                             schema:
                                 type: integer
                     content:
@@ -66,10 +70,12 @@ paths:
                             schema:
                                 type: string
                 "204":
-                    description: Successful invocation of a key whose command produced no output, or was configured to suppress output.
+                    description: |
+                        Successful invocation of a key whose command produced no output,
+                        or was configured to suppress output.
                     headers:
                         X-Keys-State:
-                            description: If the pressed key is a toggle, its current state.
+                            description: Same as for 200 response.
                             schema:
                                 type: string
                 "405":
