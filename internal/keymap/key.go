@@ -12,10 +12,9 @@ import (
 
 type Key struct {
 	Name           string
-	Label          string
+	PhysicalKey    string
 	Command        []string
 	States         []string
-	Toggle         bool
 	ShowOutput     bool
 	CommandIndex   int8
 	TimeoutSeconds int
@@ -24,26 +23,19 @@ type Key struct {
 }
 
 func NewKeyFromSection(s *ini.Section) *Key {
-	commands := s.Key("command").ValueWithShadows()
-	states := s.Key("state").ValueWithShadows()
-
 	k := &Key{
 		Name:           s.Name(),
-		Label:          s.Key("label").MustString(""),
-		Command:        commands,
-		States:         states,
+		PhysicalKey:    s.Key("physical_key").MustString(""),
+		Command:        s.Key("command").ValueWithShadows(),
+		States:         s.Key("state").ValueWithShadows(),
+		CommandIndex:   0,
 		ShowOutput:     s.Key("output").MustBool(true),
-		Toggle:         len(commands) > 1,
 		TimeoutSeconds: s.Key("timeout").MustInt(10),
 		Confirmation:   s.Key("confirmation").MustBool(true),
 		Row:            s.Key("row").MustString(""),
 	}
 
 	if k.Name == "" {
-		return nil
-	}
-
-	if k.Label == "" {
 		return nil
 	}
 
@@ -59,7 +51,7 @@ func (k *Key) CurrentCommand() string {
 }
 
 func (k *Key) CurrentState() string {
-	if !k.Toggle {
+	if !k.IsToggle() {
 		return ""
 	}
 
@@ -67,7 +59,7 @@ func (k *Key) CurrentState() string {
 }
 
 func (k *Key) UpdateCommandIndex() {
-	if !k.Toggle {
+	if !k.IsToggle() {
 		return
 	}
 
@@ -96,4 +88,8 @@ func (k *Key) RunCommand() ([]byte, error) {
 
 func (k *Key) IsLockKey() bool {
 	return k.CurrentCommand() == "lock" || k.CurrentCommand() == "unlock"
+}
+
+func (k *Key) IsToggle() bool {
+	return len(k.Command) > 1
 }

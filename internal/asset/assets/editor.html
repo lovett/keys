@@ -28,8 +28,8 @@
         <h3>Per-key <span>(specified under a [] heading)</span></h3>
 
         <dl>
-            <dt>label</dt>
-            <dd>A custom name for the key shown in the browser UI.</dd>
+            <dt>physical_key</dt>
+            <dd>The keyboard key that triggers this key.</dd>
 
             <dt>command</dt>
             <dd>The command to run when the key is pressed. If used multiple times, the key becomes a toggle.</dd>
@@ -41,7 +41,7 @@
             <dd>Display command stdout in browser. <em>Default: on</em></dd>
 
             <dt>state</dt>
-            <dd>Name for a command in a multi-command key. Use multiple times, one per name. The nth state is names the nth command.</dd>
+            <dd>Name for a command in a multi-command key. Use multiple times, one per name. The nth state names the nth command.</dd>
 
             <dt>confirmation</dt>
             <dd>Play a sound after the command runs. <em>Default: on</em></dd>
@@ -58,8 +58,8 @@
         <details>
             <summary>Single-press key</summary>
             <pre>
-[h]
-label = hello
+[hello]
+physical_key = h
 command = echo Hello</pre>
 
             <p>When the "h" key is pressed, run <code>echo</code>.</p>
@@ -75,8 +75,8 @@ command = echo Hello</pre>
         <details>
             <summary>Output suppression</summary>
             <pre>
-[c]
-label = hello
+[curl]
+physical_key = c
 command = curl http://example.com
 output = off</pre>
 
@@ -86,8 +86,8 @@ output = off</pre>
         <details>
             <summary>Multi-key sequence</summary>
             <pre>
-[hw]
-label = hello2
+[hello2]
+physical_key = kw
 command = echo Hello world</pre>
 
             <p>When the "h" and "w" keys are pressed in quick succession, run <code>echo</code>.</p>
@@ -97,21 +97,21 @@ command = echo Hello world</pre>
         <details>
             <summary>Lock/unlock toggle</summary>
             <pre>
-[l]
-label   = lock
+[lock]
+physical_key = l
 state   = unlocked
 command = lock
 state   = locked
 command = unlock</pre>
-            <p>When the "l" key is pressed, run <code>lock</code>.</p>
-            <p>When pressed again, run <code>unlock</code> to return to the unlocked state.</p>
+            <p>When the "l" key is pressed, run <code>lock</code>. State becomes "locked"</p>
+            <p>When pressed again, run <code>unlock</code> to return to the "unlocked" state.</p>
         </details>
 
         <details>
             <summary>Custom timeout</summary>
             <pre>
-[j]
-label = hello3
+[hello3]
+physical_key = j
 command = echo Hello world
 timeout = 60</pre>
 

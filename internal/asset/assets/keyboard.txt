@@ -1,6 +1,6 @@
 {{ range $key := .Keymap.Keys }}
 {{- if not (queryMatch $key) }}{{ continue }}{{ end }}
-{{ $key.Label }} ({{ $key.Name }})
+{{ $key.Name }} ({{ $key.PhysicalKey }})
 {{- range $i, $v := $key.Command }}
   {{ if len $key.States }}{{ if eq $key.CommandIndex $i}}*{{ end }}{{ index $key.States $i -}}: {{ end -}}
   {{ $v }}

@@ -139,7 +139,7 @@ func testFire(c chan *EventPair, cfg *config.Config) {
 		fmt.Printf(
 			format,
 			deviceName(pair.Path),
-			cfg.Keymap.KeyNameToSectionName(key),
+			cfg.Keymap.KeyNameToPhysicalKey(key),
 		)
 	}
 }

@@ -40,6 +40,7 @@ func Serve(cfg *config.Config, port int) {
 	mux.HandleFunc("GET /openapi.yaml", s.openapiHandler)
 	mux.HandleFunc("GET /version", s.versionHandler)
 	mux.HandleFunc("POST /edit", s.saveHandler)
+	mux.HandleFunc("POST /trigger/physical/{key}", s.triggerHandler)
 	mux.HandleFunc("POST /trigger/{key}", s.triggerHandler)
 	mux.HandleFunc("GET /util/sh", s.shellHandler)
 	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)
@@ -84,7 +85,7 @@ func (s *Server) keymapTextWriter(w http.ResponseWriter, r *http.Request) {
 
 	funcMap := texttemplate.FuncMap{
 		"queryMatch": func(k keymap.Key) bool {
-			if label != "" && !strings.HasPrefix(strings.ToLower(k.Label), label) {
+			if label != "" && !strings.HasPrefix(strings.ToLower(k.PhysicalKey), label) {
 				return false
 			}
 
@@ -297,7 +298,7 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if key.Toggle {
+	if key.IsToggle() {
 		sound.PlayToggleSound(s.Config, key)
 		w.Header().Set("X-Keys-State", key.CurrentState())
 	} else {

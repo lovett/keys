@@ -88,43 +88,49 @@ func (k *Keymap) Raw() []byte {
 	return bytes
 }
 
-func (k *Keymap) KeyNameToSectionName(keyName string) string {
+func (k *Keymap) KeyNameToPhysicalKey(keyName string) string {
 	sectionName := strings.ReplaceAll(keyName, "KEY_", "")
 	sectionName = strings.ReplaceAll(sectionName, ",", "")
 	return strings.ToLower(sectionName)
 }
 
-func (k *Keymap) IsMappedKey(keyName string) bool {
-	sectionName := k.KeyNameToSectionName(keyName)
-	for _, value := range k.Content.SectionStrings() {
-		if value == sectionName {
-			return true
-		}
-	}
-	return false
+func (k *Keymap) IsMappedKey(name string) bool {
+	physicalKey := k.KeyNameToPhysicalKey(name)
+	return k.NewKey(physicalKey) == nil
 }
 
-func (k *Keymap) NewKey(keyName string) *Key {
-	if key, ok := k.KeyCache[keyName]; ok {
+func (k *Keymap) NewKey(name string) *Key {
+	if key, ok := k.KeyCache[name]; ok {
 		return key
 	}
 
-	sectionName := k.KeyNameToSectionName(keyName)
-	section, err := k.Content.GetSection(sectionName)
+	var key *Key
 
-	if err != nil {
-		return nil
+	section, err := k.Content.GetSection(name)
+	if err == nil {
+		key = NewKeyFromSection(section)
+	} else {
+		physicalKey := k.KeyNameToPhysicalKey(name)
+
+		for _, section = range k.Content.Sections() {
+			iniKey, err := section.GetKey("physical_key")
+			if err != nil {
+				continue
+			}
+			if iniKey.Value() == physicalKey {
+				key = NewKeyFromSection(section)
+				break
+			}
+		}
 	}
 
-	key := NewKeyFromSection(section)
-	k.KeyCache[keyName] = key
+	k.KeyCache[name] = key
 	return key
-
 }
 
 func (k *Keymap) IsPrefix(keyBuffer []string) bool {
 	counter := 0
-	keys := k.KeyNameToSectionName(strings.Join(keyBuffer, ","))
+	keys := k.KeyNameToPhysicalKey(strings.Join(keyBuffer, ","))
 	for _, section := range k.Content.SectionStrings() {
 		if strings.HasPrefix(section, keys) {
 			counter++
