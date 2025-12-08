@@ -46,6 +46,10 @@ Run `keys test key` to see the name of a pressed key. For letter and number keys
 
 Run `keys start --help` for details on customizing the server. Changing the server port and turning off web or keyboard input are supported.
 
+# API
+
+There is an OpenAPI spec at `localhost:4004/openapi.yaml` in case you're into that sort of thing.
+
 # Attribution
 
 This project uses icons from [Majesticons](https://github.com/halfmage/majesticons) and sound files from [Google Material Design v2](https://m2.material.io/design/sound/sound-resources.html).
