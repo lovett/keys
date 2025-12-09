@@ -26,10 +26,6 @@ func Serve(cfg *config.Config, port int) {
 		Config:        cfg,
 	}
 
-	if err := asset.HashAssets(); err != nil {
-		log.Fatalf("Error during asset hashing: %s", err.Error())
-	}
-
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /{$}", s.keymapHandler)

@@ -4,7 +4,7 @@ import (
 	"crypto/md5"
 	"embed"
 	"fmt"
-	"io/fs"
+	"log"
 	"path/filepath"
 )
 
@@ -18,40 +18,7 @@ type Asset struct {
 	Hash     string
 }
 
-var hashMap = make(map[string]string)
-
-func HashAssets() error {
-	return fs.WalkDir(AssetFS, "assets", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if d.IsDir() {
-			return nil
-		}
-
-		if filepath.Ext(path) == "html" {
-			return nil
-		}
-
-		if filepath.Ext(path) == "ogg" {
-			return nil
-		}
-
-		if filepath.Ext(path) == "ini" {
-			return nil
-		}
-
-		b, err := AssetFS.ReadFile(path)
-
-		if err != nil {
-			return err
-		}
-
-		hashMap[path] = fmt.Sprintf("%x", md5.Sum(b))
-		return nil
-	})
-}
+var hashCache = make(map[string]string)
 
 func ReadVersion() []byte {
 	b, err := AssetFS.ReadFile("assets/version.txt")
@@ -70,12 +37,21 @@ func ReadAsset(path string) (*Asset, error) {
 		return nil, err
 	}
 
-	return &Asset{
+	mime := mimeType(path)
+
+	hash := ""
+	if mime != "" {
+		hash = assetHash(path)
+	}
+
+	asset := Asset{
 		Path:     path,
 		Bytes:    b,
-		Hash:     hashMap[path],
-		MimeType: mimeType(path),
-	}, nil
+		Hash:     hash,
+		MimeType: mime,
+	}
+
+	return &asset, nil
 }
 
 func mimeType(path string) string {
@@ -87,6 +63,23 @@ func mimeType(path string) string {
 	case ".svg":
 		return "image/svg+xml"
 	default:
-		return "application/octet-stream"
+		return ""
 	}
+}
+
+func assetHash(path string) string {
+	if hash, ok := hashCache[path]; ok {
+		return hash
+	}
+
+	b, err := AssetFS.ReadFile(path)
+
+	if err != nil {
+		log.Printf("Error during asset hashing: %s", err)
+		hashCache[path] = ""
+	} else {
+		hashCache[path] = fmt.Sprintf("%x", md5.Sum(b))
+	}
+
+	return hashCache[path]
 }
