@@ -1,4 +1,4 @@
-.PHONY: build lint lint-go lint-js lint-openapi setup watch
+.PHONY: build lint lint-go lint-js lint-openapi setup test watch
 
 run:
 	go run . start
@@ -19,6 +19,9 @@ lint-openapi:
 
 setup:
 	sudo dnf install alsa-lib-devel golangci-lint
+
+test:
+	go test ./internal/*
 
 watch:
 	find ./internal -type f | entr -r make run
