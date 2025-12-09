@@ -130,16 +130,18 @@ func ListDevices() []string {
 
 func testFire(c chan *EventPair, cfg *config.Config) {
 	for pair := range c {
-		key := evdev.CodeName(pair.Event.Type, pair.Event.Code)
+		codeName := evdev.CodeName(pair.Event.Type, pair.Event.Code)
 		format := "\nKey pressed on %s: %s \n"
 		if cfg.DesignatedKeyboard != "" && pair.Path == cfg.DesignatedKeyboard {
 			format = format[1:]
 		}
 
+		key := cfg.Keymap.FindKey(codeName)
+
 		fmt.Printf(
 			format,
 			deviceName(pair.Path),
-			cfg.Keymap.KeyNameToPhysicalKey(key),
+			key.PhysicalKey,
 		)
 	}
 }
@@ -176,7 +178,8 @@ func fire(c chan *EventPair, cfg *config.Config) {
 			timer.Stop()
 		}
 
-		if cfg.Keymap.IsPrefix(keyBuffer) {
+		bufferString := strings.Join(keyBuffer, "")
+		if cfg.Keymap.IsPhysicalKeyPrefix(bufferString) {
 			timer = time.AfterFunc(500*time.Millisecond, callback)
 		} else {
 			callback()

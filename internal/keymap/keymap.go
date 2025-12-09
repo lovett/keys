@@ -1,7 +1,6 @@
 package keymap
 
 import (
-	"errors"
 	"fmt"
 	"keys/internal/asset"
 	"os"
@@ -10,157 +9,126 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+var keyCache = make(map[string]*Key)
+
 type Keymap struct {
 	Filename string
 	Content  *ini.File
-	KeyCache map[string]*Key
 }
 
 func NewKeymap(filename string) (*Keymap, error) {
-	k := Keymap{
+	km := Keymap{
 		Filename: filename,
 	}
 
-	err := k.Parse()
+	err := km.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	k.KeyCache = make(map[string]*Key)
-	return &k, nil
+	return &km, nil
 }
 
-func (k *Keymap) Reload() error {
-	err := k.Parse()
-	if err != nil {
-		return err
-	}
-
-	k.KeyCache = make(map[string]*Key)
-	return nil
-}
-
-func (k *Keymap) Parse() error {
-	var loadErr error
+func (km *Keymap) Load() error {
+	clear(keyCache)
 
 	options := ini.LoadOptions{
 		SkipUnrecognizableLines: true,
 		AllowShadows:            true,
 	}
 
-	if _, statErr := os.Stat(k.Filename); os.IsNotExist(statErr) {
-		skeleton, err := asset.Read("assets/skeleton.ini")
-		if err != nil {
-			return err
-		}
-
-		k.Content, loadErr = ini.LoadSources(options, skeleton.Bytes)
-	} else {
-		k.Content, loadErr = ini.LoadSources(options, k.Filename)
+	bytes, err := ini.LoadSources(options, km.Raw())
+	if err != nil {
+		return err
 	}
 
-	if loadErr != nil {
-		return loadErr
-	}
-
-	// Usage is read-only, so (maybe?) speed up read operations.
-	// See https://ini.unknwon.io/docs/faqs
-	k.Content.BlockMode = false
+	km.Content = bytes
+	km.Content.BlockMode = false
 
 	return nil
 }
 
-func (k *Keymap) Raw() []byte {
-	blank := []byte{}
-
-	if _, statErr := os.Stat(k.Filename); os.IsNotExist(statErr) {
-		asset, err := asset.Read("assets/skeleton.ini")
-		if err != nil {
-			return blank
-		}
-		return asset.Bytes
+func (km *Keymap) Raw() []byte {
+	if _, statErr := os.Stat(km.Filename); os.IsNotExist(statErr) {
+		return asset.ReadKeymapSkeleton()
 	}
 
-	bytes, err := os.ReadFile(k.Filename)
+	bytes, err := os.ReadFile(km.Filename)
 	if err != nil {
-		return blank
+		return []byte{}
 	}
 	return bytes
 }
 
-func (k *Keymap) KeyNameToPhysicalKey(keyName string) string {
-	sectionName := strings.ReplaceAll(keyName, "KEY_", "")
-	sectionName = strings.ReplaceAll(sectionName, ",", "")
-	return strings.ToLower(sectionName)
-}
-
-func (k *Keymap) IsMappedKey(name string) bool {
-	physicalKey := k.KeyNameToPhysicalKey(name)
-	return k.NewKey(physicalKey) == nil
-}
-
-func (k *Keymap) NewKey(name string) *Key {
-	if key, ok := k.KeyCache[name]; ok {
+func (km *Keymap) FindKey(target string) *Key {
+	if key, found := keyCache[target]; found {
 		return key
 	}
 
-	var key *Key
-
-	section, err := k.Content.GetSection(name)
-	if err == nil {
-		key = NewKeyFromSection(section)
-	} else {
-		physicalKey := k.KeyNameToPhysicalKey(name)
-
-		for _, section = range k.Content.Sections() {
-			iniKey, err := section.GetKey("physical_key")
-			if err != nil {
-				continue
-			}
-			if iniKey.Value() == physicalKey {
-				key = NewKeyFromSection(section)
-				break
-			}
-		}
+	key := km.findKeyByName(target)
+	if key == nil {
+		key = km.findKeyByPhysicalKey(target)
 	}
 
-	k.KeyCache[name] = key
+	keyCache[target] = key
 	return key
 }
 
-func (k *Keymap) IsPrefix(keyBuffer []string) bool {
-	counter := 0
-	keys := k.KeyNameToPhysicalKey(strings.Join(keyBuffer, ","))
-	for _, section := range k.Content.SectionStrings() {
-		if strings.HasPrefix(section, keys) {
-			counter++
+func (km *Keymap) findKeyByName(name string) *Key {
+	section, err := km.Content.GetSection(name)
+	if err != nil {
+		return nil
+	}
+
+	return NewKeyFromSection(section, "")
+}
+
+func (km *Keymap) findKeyByPhysicalKey(physicalKey string) *Key {
+	wanted := strings.ReplaceAll(physicalKey, "KEY_", "")
+	wanted = strings.ReplaceAll(wanted, ",", "")
+
+	for _, section := range km.Content.Sections() {
+		iniKey, err := section.GetKey("physical_key")
+		if err != nil {
+			continue
+		}
+		if iniKey.Value() == wanted {
+			return NewKeyFromSection(section, "")
 		}
 	}
 
-	return counter > 1
+	return nil
 }
 
-func (k *Keymap) Keys() func(yield func(*Key) bool) {
-	var rowName string
+func (km *Keymap) IsPhysicalKeyPrefix(prefix string) bool {
+	for _, section := range km.Content.Sections() {
+		physicalKey := section.Key("physical_key").MustString("")
+		if strings.HasPrefix(physicalKey, prefix) && len(prefix) < len(physicalKey) {
+			return true
+		}
+	}
+	return false
+}
+
+func (km *Keymap) Keys() func(yield func(*Key) bool) {
+	row := ""
 
 	return func(yield func(*Key) bool) {
-		for _, s := range k.Content.Sections() {
+		for _, s := range km.Content.Sections() {
 			if s.Name() == ini.DefaultSection {
 				continue
 			}
 
 			if strings.HasPrefix(s.Name(), "--") {
-				rowName = strings.Trim(s.Name(), "-")
+				row = strings.Trim(s.Name(), "-")
 				continue
 			}
 
-			key := k.NewKey(s.Name())
+			key := NewKeyFromSection(s, row)
 
 			if key == nil {
 				continue
 			}
-
-			key.Row = rowName
 
 			if !yield(key) {
 				return
@@ -169,17 +137,21 @@ func (k *Keymap) Keys() func(yield func(*Key) bool) {
 	}
 }
 
-func (k *Keymap) StoreKeyboard(path string) error {
+func (km *Keymap) SetKeyboard(path string) {
+	km.Content.Section(ini.DefaultSection).Key("keyboard").SetValue(path)
+}
+
+func (km *Keymap) Write() error {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return errors.New("failed to get current directory")
+		return err
 	}
 
-	// Not using system temp dir because rename across filesystems isn't supported
-	// and /tmp is probably on a separate partition.
+	// Not using system temp dir because it could on a different partition.
+	// Rename across filesystems isn't supported.
 	tempFile, err := os.CreateTemp(cwd, "keys-temp*.ini")
 	if err != nil {
-		return errors.New("failed to create temporary file")
+		return err
 	}
 	defer func() {
 		removeErr := os.Remove(tempFile.Name())
@@ -188,14 +160,12 @@ func (k *Keymap) StoreKeyboard(path string) error {
 		}
 	}()
 
-	k.Content.Section("").Key("keyboard").SetValue(path)
-
-	err = k.Content.SaveTo(tempFile.Name())
+	err = km.Content.SaveTo(tempFile.Name())
 	if err != nil {
 		return fmt.Errorf("could not save file %s: %w", tempFile.Name(), err)
 	}
 
-	if err := os.Rename(tempFile.Name(), k.Filename); err != nil {
+	if err := os.Rename(tempFile.Name(), km.Filename); err != nil {
 		return fmt.Errorf("could not open file %s: %w", tempFile.Name(), err)
 	}
 

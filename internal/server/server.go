@@ -248,7 +248,7 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.Config.Keymap.Reload()
+	err = s.Config.Keymap.Load()
 	if err != nil {
 		log.Fatalf("Error during reload: %v", err)
 	}
@@ -257,7 +257,7 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
-	key := s.Config.Keymap.NewKey(r.PathValue("key"))
+	key := s.Config.Keymap.FindKey(r.PathValue("key"))
 
 	if key == nil {
 		s.sendError(w, "Invalid key")

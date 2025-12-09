@@ -37,7 +37,7 @@ func loadKeyFromFixture(t *testing.T, filename string) *Key {
 		t.Fatal(err)
 	}
 
-	return NewKeyFromSection(s)
+	return NewKeyFromSection(s, "")
 }
 
 func TestKey(t *testing.T) {

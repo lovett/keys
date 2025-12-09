@@ -22,7 +22,7 @@ func Select(cfg *config.Config, args []string) int {
 			log.Fatal(err)
 		}
 
-		err = cfg.Keymap.StoreKeyboard(*keyboard)
+		cfg.Keymap.SetKeyboard(*keyboard)
 
 		if err != nil {
 			log.Fatal(err)

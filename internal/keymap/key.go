@@ -22,7 +22,7 @@ type Key struct {
 	Row          string
 }
 
-func NewKeyFromSection(s *ini.Section) *Key {
+func NewKeyFromSection(s *ini.Section, row string) *Key {
 	k := &Key{
 		Name:         s.Name(),
 		PhysicalKey:  s.Key("physical_key").MustString(""),
@@ -32,7 +32,7 @@ func NewKeyFromSection(s *ini.Section) *Key {
 		ShowOutput:   s.Key("output").MustBool(true),
 		Timeout:      time.Duration(s.Key("timeout").MustFloat64(10.0)) * time.Second,
 		Confirmation: s.Key("confirmation").MustBool(true),
-		Row:          s.Key("row").MustString(""),
+		Row:          row,
 	}
 
 	if k.CurrentCommand() == "" {

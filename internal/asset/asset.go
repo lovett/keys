@@ -40,14 +40,13 @@ func Read(path string) (*Asset, error) {
 		asset.MimeType = "image/svg+xml"
 	}
 
-	hash, found := hashCache[asset.Path]
-
-	if asset.MimeType != "" && !found {
-		hash = fmt.Sprintf("%x", md5.Sum(asset.Bytes))
-		hashCache[asset.Path] = hash
+	if asset.MimeType != "" {
+		if _, found := hashCache[asset.Path]; !found {
+			hash := fmt.Sprintf("%x", md5.Sum(asset.Bytes))
+			hashCache[asset.Path] = hash
+			asset.Hash = hash
+		}
 	}
-
-	asset.Hash = hash
 
 	return &asset, nil
 }
@@ -59,5 +58,13 @@ func ReadVersion() []byte {
 		return []byte("unknown")
 	}
 
+	return asset.Bytes
+}
+
+func ReadKeymapSkeleton() []byte {
+	asset, err := Read("assets/skeleton.ini")
+	if err != nil {
+		return []byte{}
+	}
 	return asset.Bytes
 }
