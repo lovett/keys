@@ -10,7 +10,6 @@ import (
 	"keys/internal/sound"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	texttemplate "text/template"
 )
@@ -208,52 +207,17 @@ func (s *Server) editHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "Error parsing form.", http.StatusInternalServerError)
+		wrappedError := fmt.Errorf("Error during form parsing: %w", err)
+		http.Error(w, wrappedError.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	cwd, err := os.Getwd()
+	content := []byte(r.Form.Get("content"))
+	err = s.Config.Keymap.Replace(content)
 	if err != nil {
-		http.Error(w, "Failed to get current directory", http.StatusInternalServerError)
+		wrappedError := fmt.Errorf("Error during save: %w", err)
+		http.Error(w, wrappedError.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	// Not using system temp dir because rename across filesystems isn't supported
-	// and /tmp is probably on a separate partition.
-	tempFile, err := os.CreateTemp(cwd, "keys-temp*.ini")
-
-	if err != nil {
-		http.Error(w, "Failed to create temporary file.", http.StatusInternalServerError)
-		return
-	}
-	defer func() {
-		if err := os.Remove(tempFile.Name()); err != nil {
-			if os.IsNotExist(err) {
-				return
-			}
-			log.Fatalf("unable to remove tempfile: %v", err)
-		}
-	}()
-
-	if _, err := tempFile.Write([]byte(r.Form.Get("content"))); err != nil {
-		http.Error(w, "Failed to write to temporary file.", http.StatusInternalServerError)
-		return
-	}
-
-	if err := tempFile.Close(); err != nil {
-		http.Error(w, "Failed to close temp file.", http.StatusInternalServerError)
-		return
-	}
-
-	if err := os.Rename(tempFile.Name(), s.Config.Keymap.Filename); err != nil {
-		fmt.Println(fmt.Errorf("could not open file %q: %w", tempFile.Name(), err))
-		http.Error(w, "Failed to move temporary file", http.StatusInternalServerError)
-		return
-	}
-
-	err = s.Config.Keymap.Load()
-	if err != nil {
-		log.Fatalf("Error during reload: %v", err)
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)

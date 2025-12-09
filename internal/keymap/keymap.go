@@ -12,13 +12,20 @@ import (
 var keyCache = make(map[string]*Key)
 
 type Keymap struct {
-	Filename string
-	Content  *ini.File
+	Filename           string
+	Content            *ini.File
+	LoadOptions        ini.LoadOptions
+	SoundAllowed       bool
+	DesignatedKeyboard string
 }
 
 func NewKeymap(filename string) (*Keymap, error) {
 	km := Keymap{
 		Filename: filename,
+		LoadOptions: ini.LoadOptions{
+			SkipUnrecognizableLines: true,
+			AllowShadows:            true,
+		},
 	}
 
 	err := km.Load()
@@ -32,20 +39,33 @@ func NewKeymap(filename string) (*Keymap, error) {
 func (km *Keymap) Load() error {
 	clear(keyCache)
 
-	options := ini.LoadOptions{
-		SkipUnrecognizableLines: true,
-		AllowShadows:            true,
-	}
-
-	bytes, err := ini.LoadSources(options, km.Raw())
+	content, err := ini.LoadSources(km.LoadOptions, km.Raw())
 	if err != nil {
 		return err
 	}
 
-	km.Content = bytes
+	km.Content = content
 	km.Content.BlockMode = false
+	km.SoundAllowed = km.defaultSectionKey("sound").MustBool(true)
+	km.DesignatedKeyboard = km.defaultSectionKey("keyboard").String()
 
 	return nil
+}
+
+func (km *Keymap) Replace(newContent []byte) error {
+	content, err := ini.LoadSources(km.LoadOptions, newContent)
+	if err != nil {
+		return err
+	}
+
+	km.Content = content
+
+	err = km.Write()
+	if err != nil {
+		return err
+	}
+
+	return km.Load()
 }
 
 func (km *Keymap) Raw() []byte {
@@ -147,7 +167,7 @@ func (km *Keymap) Write() error {
 		return err
 	}
 
-	// Not using system temp dir because it could on a different partition.
+	// Not using system temp dir because it could be on a different partition.
 	// Rename across filesystems isn't supported.
 	tempFile, err := os.CreateTemp(cwd, "keys-temp*.ini")
 	if err != nil {
@@ -162,12 +182,16 @@ func (km *Keymap) Write() error {
 
 	err = km.Content.SaveTo(tempFile.Name())
 	if err != nil {
-		return fmt.Errorf("could not save file %s: %w", tempFile.Name(), err)
+		return fmt.Errorf("could not write keymap to temp file: %w", err)
 	}
 
 	if err := os.Rename(tempFile.Name(), km.Filename); err != nil {
-		return fmt.Errorf("could not open file %s: %w", tempFile.Name(), err)
+		return fmt.Errorf("could not rename keymap temp file: %w", err)
 	}
 
 	return nil
+}
+
+func (km *Keymap) defaultSectionKey(key string) *ini.Key {
+	return km.Content.Section(ini.DefaultSection).Key(key)
 }

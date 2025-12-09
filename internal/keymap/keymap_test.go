@@ -159,3 +159,41 @@ func TestSave(t *testing.T) {
 		t.Fatal("Keymap file did not contain expected value after write.")
 	}
 }
+
+func TestSoundAllowed(t *testing.T) {
+	tests := []struct {
+		fixture string
+		want    bool
+	}{
+		{fixture: "sound-off.ini", want: false},
+		{fixture: "sound-on.ini", want: true},
+		{fixture: "sound-invalid.ini", want: true},
+		{fixture: "empty.ini", want: true},
+	}
+
+	for _, tt := range tests {
+		km := keymapFromFixture(t, tt.fixture)
+
+		if km.SoundAllowed != tt.want {
+			t.Errorf("SoundAllowed with %s got %#v, wanted %#v", tt.fixture, km.SoundAllowed, tt.want)
+		}
+	}
+}
+
+func TestDesignatedKeyboard(t *testing.T) {
+	tests := []struct {
+		fixture string
+		want    string
+	}{
+		{fixture: "keyboard.ini", want: "/path/to/my/keyboard"},
+		{fixture: "empty.ini", want: ""},
+	}
+
+	for _, tt := range tests {
+		km := keymapFromFixture(t, tt.fixture)
+
+		if km.DesignatedKeyboard != tt.want {
+			t.Errorf("DesignatedKeyboard() with %s got %#v, wanted %#v", tt.fixture, km.DesignatedKeyboard, tt.want)
+		}
+	}
+}

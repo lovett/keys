@@ -8,7 +8,7 @@
 <header>
     <h1>Keys</h1>
     <div id="config">
-        <span id="config-sound" class="icon-with-label  {{ if .SoundAllowed }}on{{ else }}off{{ end }}"><svg class="icon"><use xlink:href="#icon-speaker"></use></svg> Sound <span class="label">{{ if .SoundAllowed }}on{{ else }}off{{ end }}</span></span>
+        <span id="config-sound" class="icon-with-label  {{ if .Keymap.SoundAllowed }}on{{ else }}off{{ end }}"><svg class="icon"><use xlink:href="#icon-speaker"></use></svg> Sound <span class="label">{{ if .Keymap.SoundAllowed }}on{{ else }}off{{ end }}</span></span>
         <span id="config-keyboard" class="icon-with-label  {{ if .KeyboardFound }}on{{ else }}off{{ end }}"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> Keyboard <span class="label">{{ if .KeyboardFound }}on{{ else }}off{{ end }}</span></span>
         <span id="config-locked" class="icon-with-label {{ if not .KeyboardLocked }}hidden{{ else }}locked{{ end }}"><svg class="icon"><use xlink:href="#icon-lock"></use></svg> Keyboard <span class="label">Locked</span></span>
     </div>

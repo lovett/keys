@@ -3,8 +3,6 @@ package config
 import (
 	"keys/internal/keymap"
 	"os"
-
-	"gopkg.in/ini.v1"
 )
 
 type AppMode int
@@ -15,13 +13,11 @@ const (
 )
 
 type Config struct {
-	KeyboardFound      bool
-	KeyboardLocked     bool
-	Keymap             *keymap.Keymap
-	Mode               AppMode
-	PublicUrl          string
-	SoundAllowed       bool
-	DesignatedKeyboard string
+	KeyboardFound  bool
+	KeyboardLocked bool
+	Keymap         *keymap.Keymap
+	Mode           AppMode
+	PublicUrl      string
 }
 
 func NewConfig(configFile string) (*Config, error) {
@@ -40,16 +36,9 @@ func NewConfig(configFile string) (*Config, error) {
 		Mode:   NormalMode,
 	}
 
-	cfg.SoundAllowed = cfg.defaultSectionKey("sound").MustBool(true)
-	cfg.DesignatedKeyboard = cfg.defaultSectionKey("keyboard").String()
-
 	return &cfg, nil
 }
 
 func (c *Config) EnableKeyTestMode() {
 	c.Mode = KeyTestMode
-}
-
-func (c *Config) defaultSectionKey(key string) *ini.Key {
-	return c.Keymap.Content.Section(ini.DefaultSection).Key(key)
 }

@@ -41,7 +41,7 @@ func Listen(cfg *config.Config) {
 	}
 
 	for _, device := range ListDevices() {
-		if cfg.DesignatedKeyboard != "" && device != cfg.DesignatedKeyboard {
+		if cfg.Keymap.DesignatedKeyboard != "" && device != cfg.Keymap.DesignatedKeyboard {
 			log.Printf("Skipping %s\n", deviceName(device))
 			continue
 		}
@@ -132,7 +132,7 @@ func testFire(c chan *EventPair, cfg *config.Config) {
 	for pair := range c {
 		codeName := evdev.CodeName(pair.Event.Type, pair.Event.Code)
 		format := "\nKey pressed on %s: %s \n"
-		if cfg.DesignatedKeyboard != "" && pair.Path == cfg.DesignatedKeyboard {
+		if cfg.Keymap.DesignatedKeyboard != "" && pair.Path == cfg.Keymap.DesignatedKeyboard {
 			format = format[1:]
 		}
 
@@ -203,7 +203,7 @@ func listener(path string, c chan *EventPair, wg *sync.WaitGroup, cfg *config.Co
 		}
 	}()
 
-	if path == cfg.DesignatedKeyboard {
+	if path == cfg.Keymap.DesignatedKeyboard {
 		err = device.Grab()
 		if err != nil {
 			log.Fatalf("Failed to grab device %s: %v", deviceName, err)
