@@ -41,7 +41,14 @@ func Serve(cfg *config.Config, port int) {
 	mux.HandleFunc("GET /util/sh", s.shellHandler)
 	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)
 	log.Printf("Config file is %s", cfg.Keymap.Filename)
-	log.Fatal(http.ListenAndServe(s.ServerAddress, serverHeaders(mux, s.Config)))
+	log.Fatal(http.ListenAndServe(s.ServerAddress, requestLogger(serverHeaders(mux, s.Config))))
+}
+
+func requestLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s", r.Method, r.RequestURI)
+		next.ServeHTTP(w, r)
+	})
 }
 
 func serverHeaders(next http.Handler, config *config.Config) http.Handler {
@@ -62,8 +69,6 @@ func serverHeaders(next http.Handler, config *config.Config) http.Handler {
 }
 
 func (s *Server) keymapHandler(w http.ResponseWriter, r *http.Request) {
-	s.logRequest(r)
-
 	if r.Header.Get("accept") == "text/plain" {
 		s.keymapTextWriter(w, r)
 	} else {
@@ -137,8 +142,6 @@ func (s *Server) keymapHtmlWriter(w http.ResponseWriter) {
 }
 
 func (s *Server) shellHandler(w http.ResponseWriter, r *http.Request) {
-	s.logRequest(r)
-
 	tmpl := texttemplate.New("keys.sh")
 	tmpl, err := tmpl.ParseFS(asset.AssetFS, "assets/keys.sh")
 
@@ -166,16 +169,13 @@ func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
 	asset, err := asset.Read(strings.TrimPrefix(r.RequestURI, "/"))
 
 	if err != nil {
-		s.logRequestWithStatus(r, http.StatusNotFound)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	if r.Header.Get("If-None-Match") == asset.Hash {
-		s.logRequestWithStatus(r, http.StatusNotModified)
 		w.WriteHeader(http.StatusNotModified)
 	} else {
-		s.logRequestWithStatus(r, http.StatusOK)
 		w.Header().Set("Content-Type", asset.MimeType)
 		w.Header().Set("ETag", asset.Hash)
 		if _, err := w.Write(asset.Bytes); err != nil {
@@ -185,8 +185,6 @@ func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) editHandler(w http.ResponseWriter, r *http.Request) {
-	s.logRequest(r)
-
 	templates := htmltemplate.Must(htmltemplate.ParseFS(asset.AssetFS, "assets/layout.html", "assets/editor.html"))
 
 	var output bytes.Buffer
@@ -205,8 +203,6 @@ func (s *Server) editHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
-	s.logRequest(r)
-
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, "Error parsing form.", http.StatusInternalServerError)
@@ -261,8 +257,6 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
-	s.logRequest(r)
-
 	key := s.Config.Keymap.NewKey(r.PathValue("key"))
 
 	if key == nil {
@@ -318,8 +312,6 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) versionHandler(w http.ResponseWriter, r *http.Request) {
-	s.logRequest(r)
-
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write(asset.ReadVersion()); err != nil {
 		log.Fatalf("unable to write version response body: %v", err)
@@ -333,17 +325,7 @@ func (s *Server) sendError(w http.ResponseWriter, message string) {
 	}
 }
 
-func (s *Server) logRequest(r *http.Request) {
-	log.Printf("%s %s", r.Method, r.RequestURI)
-}
-
-func (s *Server) logRequestWithStatus(r *http.Request, status int) {
-	log.Printf("%s %s -> %d", r.Method, r.RequestURI, status)
-}
-
 func (s *Server) openapiHandler(w http.ResponseWriter, r *http.Request) {
-	s.logRequest(r)
-
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	tmpl := texttemplate.New("openapi.yaml")
