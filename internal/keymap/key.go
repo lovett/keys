@@ -2,94 +2,114 @@ package keymap
 
 import (
 	"context"
-	"errors"
 	"log"
 	"os/exec"
+	"strings"
 	"time"
 
 	"gopkg.in/ini.v1"
 )
 
 type Key struct {
-	Name           string
-	PhysicalKey    string
-	Command        []string
-	States         []string
-	ShowOutput     bool
-	CommandIndex   int8
-	TimeoutSeconds int
-	Confirmation   bool
-	Row            string
+	Name         string
+	PhysicalKey  string
+	Commands     []string
+	States       []string
+	CommandIndex uint8
+	ShowOutput   bool
+	Timeout      time.Duration
+	Confirmation bool
+	Row          string
 }
 
 func NewKeyFromSection(s *ini.Section) *Key {
 	k := &Key{
-		Name:           s.Name(),
-		PhysicalKey:    s.Key("physical_key").MustString(""),
-		Command:        s.Key("command").ValueWithShadows(),
-		States:         s.Key("state").ValueWithShadows(),
-		CommandIndex:   0,
-		ShowOutput:     s.Key("output").MustBool(true),
-		TimeoutSeconds: s.Key("timeout").MustInt(10),
-		Confirmation:   s.Key("confirmation").MustBool(true),
-		Row:            s.Key("row").MustString(""),
-	}
-
-	if k.Name == "" {
-		return nil
+		Name:         s.Name(),
+		PhysicalKey:  s.Key("physical_key").MustString(""),
+		Commands:     s.Key("command").ValueWithShadows(),
+		States:       s.Key("state").ValueWithShadows(),
+		CommandIndex: 0,
+		ShowOutput:   s.Key("output").MustBool(true),
+		Timeout:      time.Duration(s.Key("timeout").MustFloat64(10.0)) * time.Second,
+		Confirmation: s.Key("confirmation").MustBool(true),
+		Row:          s.Key("row").MustString(""),
 	}
 
 	if k.CurrentCommand() == "" {
 		return nil
 	}
 
+	if len(k.Commands) > 1 && len(k.Commands) != len(k.States) {
+		return nil
+	}
+
 	return k
 }
 
-func (k *Key) CurrentCommand() string {
-	return k.Command[k.CommandIndex]
+func (k *Key) CanLock() bool {
+	return k.CurrentCommand() == "lock" || k.CurrentCommand() == "unlock"
 }
 
-func (k *Key) CurrentState() string {
-	if !k.IsToggle() {
+func (k *Key) CanRoll() bool {
+	return len(k.Commands) > 1
+}
+
+func (k *Key) MatchesCommand(command string) bool {
+	lcCommand := strings.ToLower(command)
+
+	for _, c := range k.Commands {
+		if strings.Contains(strings.ToLower(c), lcCommand) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (k *Key) MatchesPhysicalKey(physicalKey string) bool {
+	return strings.Contains(strings.ToLower(k.PhysicalKey), strings.ToLower(physicalKey))
+}
+
+func (k *Key) MatchesName(name string) bool {
+	return strings.Contains(strings.ToLower(k.Name), strings.ToLower(name))
+}
+
+func (k *Key) State() string {
+	if !k.CanRoll() {
 		return ""
 	}
 
 	return k.States[k.CommandIndex]
 }
 
-func (k *Key) UpdateCommandIndex() {
-	if !k.IsToggle() {
+func (k *Key) CurrentCommand() string {
+	if len(k.Commands) == 0 {
+		return ""
+	}
+
+	return k.Commands[k.CommandIndex]
+}
+
+func (k *Key) RollForward() {
+	if !k.CanRoll() {
 		return
 	}
 
 	k.CommandIndex += 1
-	if k.CommandIndex >= int8(len(k.Command)) {
+	if k.CommandIndex >= uint8(len(k.Commands)) {
 		k.CommandIndex = 0
 	}
 }
 
 func (k *Key) RunCommand() ([]byte, error) {
-	if len(k.CurrentCommand()) == 0 {
-		return nil, errors.New("key command is empty, nothing to run")
-	}
-
 	log.Printf("Running command: %s", k.CurrentCommand())
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(k.TimeoutSeconds)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), k.Timeout)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "sh", "-c", k.CurrentCommand())
 
-	k.UpdateCommandIndex()
+	k.RollForward()
 
 	return cmd.Output()
-}
-
-func (k *Key) IsLockKey() bool {
-	return k.CurrentCommand() == "lock" || k.CurrentCommand() == "unlock"
-}
-
-func (k *Key) IsToggle() bool {
-	return len(k.Command) > 1
 }

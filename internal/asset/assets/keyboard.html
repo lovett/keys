@@ -32,9 +32,9 @@
         {{ end }}
         <li>
             {{/* Href is relative due to CORS */}}
-            <a class="key" data-keypress="{{ .PhysicalKey }}" href="/trigger/{{ .Name }}" {{ if .IsLockKey }}data-lock-key{{end}}>
+            <a class="key" data-keypress="{{ .PhysicalKey }}" href="/trigger/{{ .Name }}" {{ if .CanLock }}data-lock-key{{end}}>
                 <div class="key-label">{{ .Name }}</div>
-                <div class="state">{{ .CurrentState }}</div>
+                <div class="state">{{ .State }}</div>
                 <div class="name icon-with-label"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> <span class="label">{{ .PhysicalKey }}</span></div>
             </a>
         </li>

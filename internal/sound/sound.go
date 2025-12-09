@@ -78,7 +78,7 @@ func PlayToggleSound(cfg *config.Config, key *keymap.Key) {
 		return
 	}
 
-	if !key.IsToggle() {
+	if !key.CanRoll() {
 		return
 	}
 

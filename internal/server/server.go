@@ -86,15 +86,15 @@ func (s *Server) keymapTextWriter(w http.ResponseWriter, r *http.Request) {
 
 	funcMap := texttemplate.FuncMap{
 		"queryMatch": func(k keymap.Key) bool {
-			if label != "" && !strings.HasPrefix(strings.ToLower(k.PhysicalKey), label) {
+			if label != "" && !k.MatchesName(label) {
 				return false
 			}
 
-			if command != "" && !strings.Contains(strings.ToLower(strings.Join(k.Command, " ")), command) {
+			if command != "" && !k.MatchesCommand(command) {
 				return false
 			}
 
-			if keyboardKey != "" && !strings.Contains(strings.ToLower(k.Name), keyboardKey) {
+			if keyboardKey != "" && !k.MatchesPhysicalKey(keyboardKey) {
 				return false
 			}
 
@@ -270,12 +270,12 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	switch key.CurrentCommand() {
 	case "lock":
 		s.Config.KeyboardLocked = true
-		key.UpdateCommandIndex()
+		key.RollForward()
 		stdout = []byte("Keyboard locked")
 		w.Header().Set("X-Keys-Locked", "1")
 	case "unlock":
 		s.Config.KeyboardLocked = false
-		key.UpdateCommandIndex()
+		key.RollForward()
 		stdout = []byte("Keyboard unlocked")
 		w.Header().Set("X-Keys-Locked", "0")
 	default:
@@ -288,9 +288,9 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if key.IsToggle() {
+	if key.CanRoll() {
 		sound.PlayToggleSound(s.Config, key)
-		w.Header().Set("X-Keys-State", key.CurrentState())
+		w.Header().Set("X-Keys-State", key.State())
 	} else {
 		sound.PlayConfirmationSound(s.Config, key)
 	}

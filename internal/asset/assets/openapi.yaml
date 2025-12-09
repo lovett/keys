@@ -50,7 +50,7 @@ paths:
                     description: Stdout of the command associated with the specified key.
                     headers:
                         X-Keys-State:
-                            description: If the pressed key is a toggle, its current state.
+                            description: If the pressed key toggles between multiple commands, its current state.
                             schema:
                                 type: string
                         X-Keys-Locked:
