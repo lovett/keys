@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"embed"
 	"fmt"
-	"log"
 	"path/filepath"
 )
 
@@ -20,66 +19,45 @@ type Asset struct {
 
 var hashCache = make(map[string]string)
 
-func ReadVersion() []byte {
-	b, err := AssetFS.ReadFile("assets/version.txt")
-
-	if err != nil {
-		return []byte("dev")
-	}
-
-	return b
-}
-
-func ReadAsset(path string) (*Asset, error) {
+func Read(path string) (*Asset, error) {
 	b, err := AssetFS.ReadFile(path)
 
 	if err != nil {
 		return nil, err
 	}
 
-	mime := mimeType(path)
-
-	hash := ""
-	if mime != "" {
-		hash = assetHash(path)
-	}
-
 	asset := Asset{
-		Path:     path,
-		Bytes:    b,
-		Hash:     hash,
-		MimeType: mime,
+		Path:  path,
+		Bytes: b,
 	}
+
+	switch filepath.Ext(asset.Path) {
+	case ".css":
+		asset.MimeType = "text/css"
+	case ".js":
+		asset.MimeType = "application/javascript"
+	case ".svg":
+		asset.MimeType = "image/svg+xml"
+	}
+
+	hash, found := hashCache[asset.Path]
+
+	if asset.MimeType != "" && !found {
+		hash = fmt.Sprintf("%x", md5.Sum(asset.Bytes))
+		hashCache[asset.Path] = hash
+	}
+
+	asset.Hash = hash
 
 	return &asset, nil
 }
 
-func mimeType(path string) string {
-	switch filepath.Ext(path) {
-	case ".css":
-		return "text/css"
-	case ".js":
-		return "application/javascript"
-	case ".svg":
-		return "image/svg+xml"
-	default:
-		return ""
-	}
-}
-
-func assetHash(path string) string {
-	if hash, ok := hashCache[path]; ok {
-		return hash
-	}
-
-	b, err := AssetFS.ReadFile(path)
+func ReadVersion() []byte {
+	asset, err := Read("assets/version.txt")
 
 	if err != nil {
-		log.Printf("Error during asset hashing: %s", err)
-		hashCache[path] = ""
-	} else {
-		hashCache[path] = fmt.Sprintf("%x", md5.Sum(b))
+		return []byte("unknown")
 	}
 
-	return hashCache[path]
+	return asset.Bytes
 }

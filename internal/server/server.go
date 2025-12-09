@@ -163,7 +163,7 @@ func (s *Server) shellHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
-	asset, err := asset.ReadAsset(strings.TrimPrefix(r.RequestURI, "/"))
+	asset, err := asset.Read(strings.TrimPrefix(r.RequestURI, "/"))
 
 	if err != nil {
 		s.logRequestWithStatus(r, http.StatusNotFound)

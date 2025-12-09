@@ -49,7 +49,7 @@ func (k *Keymap) Parse() error {
 	}
 
 	if _, statErr := os.Stat(k.Filename); os.IsNotExist(statErr) {
-		skeleton, err := asset.ReadAsset("assets/skeleton.ini")
+		skeleton, err := asset.Read("assets/skeleton.ini")
 		if err != nil {
 			return err
 		}
@@ -74,7 +74,7 @@ func (k *Keymap) Raw() []byte {
 	blank := []byte{}
 
 	if _, statErr := os.Stat(k.Filename); os.IsNotExist(statErr) {
-		asset, err := asset.ReadAsset("assets/skeleton.ini")
+		asset, err := asset.Read("assets/skeleton.ini")
 		if err != nil {
 			return blank
 		}

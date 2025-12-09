@@ -16,7 +16,7 @@ func TestAssetRead(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		asset, err := ReadAsset(tt.path)
+		asset, err := Read(tt.path)
 		if err != nil {
 			t.Fatalf("Could not read %s: %v", tt.path, err)
 		}
@@ -40,7 +40,7 @@ func TestAssetRead(t *testing.T) {
 }
 
 func TestAssetExistence(t *testing.T) {
-	asset, _ := ReadAsset("does-not-exist")
+	asset, _ := Read("does-not-exist")
 	if asset != nil {
 		t.Errorf("Nonexistant asset path should have been rejected")
 	}
@@ -49,7 +49,7 @@ func TestAssetExistence(t *testing.T) {
 func TestVersionDefault(t *testing.T) {
 	b := ReadVersion()
 
-	if string(b) != "dev" {
+	if string(b) != "unknown" {
 		t.Errorf("Unexpected default value for version asset: %v", b)
 	}
 }
