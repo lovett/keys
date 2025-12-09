@@ -53,3 +53,26 @@ func TestVersionDefault(t *testing.T) {
 		t.Errorf("Unexpected default value for version asset: %v", b)
 	}
 }
+
+func TestAssetHashMatching(t *testing.T) {
+	tests := []struct {
+		hash  string
+		match bool
+	}{
+		{hash: "my-hash", match: true},
+		{hash: "", match: false},
+	}
+
+	a, err := Read("assets/keyboard.html")
+	if err != nil {
+		t.Fatalf("Could not read asset: %v", err)
+	}
+
+	for _, tt := range tests {
+		a.Hash = tt.hash
+		result := a.HashMatch(tt.hash)
+		if result != tt.match {
+			t.Fatalf("Hash matching failure: got %t for %s", result, tt.hash)
+		}
+	}
+}

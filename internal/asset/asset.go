@@ -19,6 +19,14 @@ type Asset struct {
 
 var hashCache = make(map[string]string)
 
+func (a *Asset) HashMatch(hash string) bool {
+	if a.Hash == "" {
+		return false
+	}
+
+	return a.Hash == hash
+}
+
 func Read(path string) (*Asset, error) {
 	b, err := AssetFS.ReadFile(path)
 

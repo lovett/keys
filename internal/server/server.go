@@ -173,14 +173,17 @@ func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Header.Get("If-None-Match") == asset.Hash {
+	wantedHash := r.Header.Get("If-None-Match")
+
+	if asset.HashMatch(wantedHash) {
 		w.WriteHeader(http.StatusNotModified)
-	} else {
-		w.Header().Set("Content-Type", asset.MimeType)
-		w.Header().Set("ETag", asset.Hash)
-		if _, err := w.Write(asset.Bytes); err != nil {
-			log.Fatalf("unable to write asset body: %v", err)
-		}
+		return
+	}
+
+	w.Header().Set("Content-Type", asset.MimeType)
+	w.Header().Set("ETag", asset.Hash)
+	if _, err := w.Write(asset.Bytes); err != nil {
+		log.Fatalf("unable to write asset body: %v", err)
 	}
 }
 
