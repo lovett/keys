@@ -69,9 +69,8 @@ func TestSoundAllowed(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		got := cfg.SoundAllowed()
-		if got != tt.want {
-			t.Errorf("SoundAllowed() with %s got %#v, wanted %#v", tt.fixture, got, tt.want)
+		if cfg.SoundAllowed != tt.want {
+			t.Errorf("SoundAllowed with %s got %#v, wanted %#v", tt.fixture, cfg.SoundAllowed, tt.want)
 		}
 	}
 }
@@ -92,9 +91,8 @@ func TestDesignatedKeyboard(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		got := cfg.DesignatedKeyboard()
-		if got != tt.want {
-			t.Errorf("DesignatedKeyboard() with %s got %#v, wanted %#v", tt.fixture, got, tt.want)
+		if cfg.DesignatedKeyboard != tt.want {
+			t.Errorf("DesignatedKeyboard() with %s got %#v, wanted %#v", tt.fixture, cfg.DesignatedKeyboard, tt.want)
 		}
 	}
 }

@@ -55,7 +55,7 @@ func LoadSounds() {
 }
 
 func PlayConfirmationSound(cfg *config.Config, key *keymap.Key) {
-	if !cfg.SoundAllowed() {
+	if !cfg.SoundAllowed {
 		return
 	}
 
@@ -67,14 +67,14 @@ func PlayConfirmationSound(cfg *config.Config, key *keymap.Key) {
 }
 
 func PlayErrorSound(cfg *config.Config) {
-	if !cfg.SoundAllowed() {
+	if !cfg.SoundAllowed {
 		return
 	}
 	SoundMap["error"].Play()
 }
 
 func PlayToggleSound(cfg *config.Config, key *keymap.Key) {
-	if !cfg.SoundAllowed() {
+	if !cfg.SoundAllowed {
 		return
 	}
 
@@ -90,7 +90,7 @@ func PlayToggleSound(cfg *config.Config, key *keymap.Key) {
 }
 
 func PlayTapSound(cfg *config.Config, key *keymap.Key) {
-	if !cfg.SoundAllowed() {
+	if !cfg.SoundAllowed {
 		return
 	}
 

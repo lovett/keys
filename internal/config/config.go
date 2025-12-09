@@ -15,11 +15,13 @@ const (
 )
 
 type Config struct {
-	KeyboardFound  bool
-	KeyboardLocked bool
-	Keymap         *keymap.Keymap
-	Mode           AppMode
-	PublicUrl      string
+	KeyboardFound      bool
+	KeyboardLocked     bool
+	Keymap             *keymap.Keymap
+	Mode               AppMode
+	PublicUrl          string
+	SoundAllowed       bool
+	DesignatedKeyboard string
 }
 
 func NewConfig(configFile string) (*Config, error) {
@@ -38,19 +40,14 @@ func NewConfig(configFile string) (*Config, error) {
 		Mode:   NormalMode,
 	}
 
+	cfg.SoundAllowed = cfg.defaultSectionKey("sound").MustBool(true)
+	cfg.DesignatedKeyboard = cfg.defaultSectionKey("keyboard").String()
+
 	return &cfg, nil
 }
 
 func (c *Config) EnableKeyTestMode() {
 	c.Mode = KeyTestMode
-}
-
-func (c *Config) DesignatedKeyboard() string {
-	return c.defaultSectionKey("keyboard").String()
-}
-
-func (c *Config) SoundAllowed() bool {
-	return c.defaultSectionKey("sound").MustBool(true)
 }
 
 func (c *Config) defaultSectionKey(key string) *ini.Key {
