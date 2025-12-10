@@ -52,49 +52,44 @@ func LoadSounds() {
 	SoundMap["up"] = SoundBuffer("assets/state-change_confirm-up.ogg")
 	SoundMap["down"] = SoundBuffer("assets/state-change_confirm-down.ogg")
 	SoundMap["tap"] = SoundBuffer("assets/navigation_forward-selection-minimal.ogg")
+	SoundMap["lock"] = SoundBuffer("assets/ui_lock.ogg")
+	SoundMap["unlock"] = SoundBuffer("assets/ui_unlock.ogg")
 }
 
 func PlayConfirmationSound(cfg *config.Config, key *keymap.Key) {
-	if !cfg.Keymap.SoundAllowed {
-		return
-	}
-
 	if !key.Confirmation {
 		return
 	}
 
-	SoundMap["confirmation"].Play()
+	playSound("confirmation", cfg)
 }
 
 func PlayErrorSound(cfg *config.Config) {
-	if !cfg.Keymap.SoundAllowed {
-		return
-	}
-	SoundMap["error"].Play()
+	playSound("error", cfg)
+}
+
+func PlayLockSound(cfg *config.Config) {
+	playSound("lock", cfg)
+}
+
+func PlayUnlockSound(cfg *config.Config) {
+	playSound("unlock", cfg)
 }
 
 func PlayToggleSound(cfg *config.Config, key *keymap.Key) {
-	if !cfg.Keymap.SoundAllowed {
-		return
-	}
-
 	if !key.CanRoll() {
 		return
 	}
 
 	if key.CommandIndex == 0 {
-		SoundMap["down"].Play()
+		playSound("down", cfg)
 	} else {
-		SoundMap["up"].Play()
+		playSound("up", cfg)
 	}
 }
 
 func PlayTapSound(cfg *config.Config, key *keymap.Key) {
-	if !cfg.Keymap.SoundAllowed {
-		return
-	}
-
-	SoundMap["tap"].Play()
+	playSound("tap", cfg)
 }
 
 func SoundBuffer(path string) *Sound {
@@ -120,5 +115,17 @@ func SoundBuffer(path string) *Sound {
 		Path:   path,
 		Format: format,
 		Buffer: *buffer,
+	}
+}
+
+func playSound(name string, cfg *config.Config) {
+	if !cfg.Keymap.SoundAllowed {
+		return
+	}
+
+	if buffer, ok := SoundMap[name]; ok {
+		buffer.Play()
+	} else {
+		log.Printf("cannot play unknown sound '%s'", name)
 	}
 }

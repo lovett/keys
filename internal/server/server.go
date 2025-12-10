@@ -236,11 +236,13 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	switch key.CurrentCommand() {
 	case "lock":
+		sound.PlayLockSound(s.Config)
 		s.Config.KeyboardLocked = true
 		key.RollForward()
 		stdout = []byte("Keyboard locked")
 		w.Header().Set("X-Keys-Locked", "1")
 	case "unlock":
+		sound.PlayUnlockSound(s.Config)
 		s.Config.KeyboardLocked = false
 		key.RollForward()
 		stdout = []byte("Keyboard unlocked")
