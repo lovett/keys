@@ -26,11 +26,11 @@ Commands are run as if they were issued from the command line. Input isn't sent 
 
 # Setup
 
-Run `make setup` to install alsa-lib-devel, a prerequisite for sound effects.
+Run `scripts/setup.sh` to install alsa-lib-devel, a prerequisite for sound effects.
 
 # Build
 
-Run `make build` to compile the application.
+Run `scripts/build.sh` to compile the application.
 
 # Usage
 
