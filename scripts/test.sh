@@ -1,12 +1,17 @@
 #!/usr/bin/env sh
 
-set -euo pipefail
+set -eu
 
 cd "$(dirname "$0")/../"
 
-if [ "$1" = "--help" ]; then
-    echo "Run unit tests."
-    exit
-fi
-
-go test ./internal/*
+case "${1:-default}" in
+    --help)
+        echo "Run unit tests."
+        ;;
+    default)
+        go test ./internal/*
+        ;;
+    *)
+        echo "Unknown argument." >&2
+        ;;
+esac

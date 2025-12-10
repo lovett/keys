@@ -1,12 +1,17 @@
 #!/usr/bin/env sh
 
-set -euo pipefail
+set -eu
 
 cd "$(dirname "$0")/../"
 
-if [ "$1" = "--help" ]; then
-    echo "Install required system packages."
-    exit
-fi
-
-sudo dnf install alsa-lib-devel golangci-lint
+case "${1:-default}" in
+    --help)
+        echo "Install required system packages."
+        ;;
+    default)
+        sudo dnf install alsa-lib-devel golangci-lint
+        ;;
+    *)
+        echo "Unknown argument." >&2
+        ;;
+esac

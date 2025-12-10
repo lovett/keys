@@ -1,12 +1,17 @@
 #!/usr/bin/env sh
 
-set -euo pipefail
+set -eu
 
 cd "$(dirname "$0")/../"
 
-if [ "$1" = "--help" ]; then
-    echo "Run the application and auto restart when files change."
-    exit
-fi
-
-find ./internal -type f | entr -r go run . start
+case "${1:-default}" in
+    --help)
+        echo "Run the application and auto restart when files change."
+        ;;
+    default)
+        find ./internal -type f | entr -r go run . start
+        ;;
+    *)
+        echo "Unknown argument." >&2
+        ;;
+esac

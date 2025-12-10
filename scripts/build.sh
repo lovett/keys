@@ -1,13 +1,17 @@
 #!/usr/bin/env sh
 
-set -euo pipefail
+set -eu
 
 cd "$(dirname "$0")/../"
 
-if [ "$1" = "--help" ]; then
-    echo "Compiles the application."
-    exit
-fi
-
-
-go build
+case "${1:-default}" in
+    --help)
+        echo "Compiles the application."
+        ;;
+    default)
+        go build
+        ;;
+    *)
+        echo "Unknown argument." >&2
+        ;;
+esac
