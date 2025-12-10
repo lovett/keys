@@ -148,7 +148,11 @@ func TestSave(t *testing.T) {
 
 	km.SetKeyboard(needle)
 	km.Filename = tempFile.Name()
-	km.Write()
+
+	err = km.Write()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	data, err := os.ReadFile(tempFile.Name())
 	if err != nil {

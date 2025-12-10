@@ -207,7 +207,7 @@ func (s *Server) editHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		wrappedError := fmt.Errorf("Error during form parsing: %w", err)
+		wrappedError := fmt.Errorf("error during form parsing: %w", err)
 		http.Error(w, wrappedError.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -215,7 +215,7 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 	content := []byte(r.Form.Get("content"))
 	err = s.Config.Keymap.Replace(content)
 	if err != nil {
-		wrappedError := fmt.Errorf("Error during save: %w", err)
+		wrappedError := fmt.Errorf("error during save: %w", err)
 		http.Error(w, wrappedError.Error(), http.StatusInternalServerError)
 		return
 	}
