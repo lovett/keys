@@ -9,6 +9,7 @@ case "${1:-default}" in
         echo "Run the application and auto restart when files change."
         ;;
     default)
+        killall -q keys || true
         find ./internal -type f | entr -r go run . start
         ;;
     *)
