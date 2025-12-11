@@ -223,12 +223,22 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func (s *Server) maybePlaySound(name sound.Name) {
+	if s.Config.Keymap.SoundAllowed {
+		s.maybePlaySound(sound.Error)
+	}
+
+	if err := sound.Play(name); err != nil {
+		log.Println(err)
+	}
+}
+
 func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	key := s.Config.Keymap.FindKey(r.PathValue("key"))
 
 	if key == nil {
 		s.sendError(w, "Invalid key")
-		sound.PlayErrorSound(s.Config)
+		s.maybePlaySound(sound.Error)
 		return
 	}
 
@@ -236,32 +246,33 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	switch key.CurrentCommand() {
 	case "lock":
-		sound.PlayLockSound(s.Config)
+		s.maybePlaySound(sound.Lock)
 		s.Config.KeyboardLocked = true
 		key.RollForward()
 		stdout = []byte("Keyboard locked")
 		w.Header().Set("X-Keys-Locked", "1")
 	case "unlock":
-		sound.PlayUnlockSound(s.Config)
+		s.maybePlaySound(sound.Unlock)
 		s.Config.KeyboardLocked = false
 		key.RollForward()
 		stdout = []byte("Keyboard unlocked")
 		w.Header().Set("X-Keys-Locked", "0")
 	default:
-		sound.PlayTapSound(s.Config, key)
+		s.maybePlaySound(sound.Tap)
 		stdout, err = key.RunCommand()
 		if err != nil {
-			sound.PlayErrorSound(s.Config)
+			s.maybePlaySound(sound.Error)
 			s.sendError(w, err.Error())
 			return
+		}
+
+		if key.Confirmation {
+			s.maybePlaySound(sound.Confirmation)
 		}
 	}
 
 	if key.CanRoll() {
-		sound.PlayToggleSound(s.Config, key)
 		w.Header().Set("X-Keys-State", key.State())
-	} else {
-		sound.PlayConfirmationSound(s.Config, key)
 	}
 
 	if len(stdout) == 0 || !key.ShowOutput {

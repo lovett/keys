@@ -32,21 +32,25 @@ func TestKey(cfg *config.Config) {
 }
 
 func TestSound() {
-	sound.LoadSounds()
-
-	prompt := func(name string) {
-		fmt.Printf("Press ENTER to play the %s sound ", name)
-		_, err := fmt.Scanln()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		sound.SoundMap[name].Play()
+	sounds := map[string]sound.Name{
+		"Confirmation": sound.Confirmation,
+		"Error":        sound.Error,
+		"Tap":          sound.Tap,
+		"Lock":         sound.Lock,
+		"Unlock":       sound.Unlock,
 	}
 
 	for {
-		for name := range sound.SoundMap {
-			prompt(name)
+		for name, s := range sounds {
+			fmt.Printf("Press ENTER to play the %s sound ", name)
+			_, err := fmt.Scanln()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if err := sound.Play(s); err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		fmt.Println("\nTest complete. Press Control-c to exit, or ENTER to test again.")

@@ -1,10 +1,8 @@
 package sound
 
 import (
+	"errors"
 	"keys/internal/asset"
-	"keys/internal/config"
-	"keys/internal/keymap"
-	"log"
 	"time"
 
 	"github.com/gopxl/beep"
@@ -12,120 +10,78 @@ import (
 	"github.com/gopxl/beep/vorbis"
 )
 
-type Sound struct {
-	Path               string
-	Format             beep.Format
-	Buffer             beep.Buffer
-	SpeakerInitialized bool
-}
+type Name int
 
-var (
-	SoundMap           = make(map[string]*Sound)
-	speakerInitialized = false
+const (
+	Confirmation Name = iota
+	Error
+	Up
+	Down
+	Lock
+	Unlock
+	Tap
 )
 
-func initializeSpeaker(s *Sound) {
-	if speakerInitialized {
-		return
+var (
+	sounds = make(map[Name]string)
+	cache  = make(map[Name]*beep.Buffer)
+)
+
+func init() {
+	sounds[Confirmation] = "assets/hero_simple-celebration-02.ogg"
+	sounds[Error] = "assets/alert_error-03.ogg"
+	sounds[Tap] = "assets/navigation_forward-selection-minimal.ogg"
+	sounds[Lock] = "assets/ui_lock.ogg"
+	sounds[Unlock] = "assets/ui_unlock.ogg"
+}
+
+func load(name Name) error {
+	if _, found := cache[name]; found {
+		return nil
 	}
 
-	if err := speaker.Init(s.Format.SampleRate, s.Format.SampleRate.N(time.Second/30)); err != nil {
-		log.Print(err)
-	} else {
-		speakerInitialized = true
-	}
-}
-
-func (s *Sound) Play() {
-	initializeSpeaker(s)
-	buffer := s.Buffer.Streamer(0, s.Buffer.Len())
-	speaker.Play(buffer)
-}
-
-func LoadSounds() {
-	if len(SoundMap) != 0 {
-		return
+	path, found := sounds[name]
+	if !found {
+		return errors.New("unknown sound")
 	}
 
-	SoundMap["confirmation"] = SoundBuffer("assets/hero_simple-celebration-02.ogg")
-	SoundMap["error"] = SoundBuffer("assets/alert_error-03.ogg")
-	SoundMap["up"] = SoundBuffer("assets/state-change_confirm-up.ogg")
-	SoundMap["down"] = SoundBuffer("assets/state-change_confirm-down.ogg")
-	SoundMap["tap"] = SoundBuffer("assets/navigation_forward-selection-minimal.ogg")
-	SoundMap["lock"] = SoundBuffer("assets/ui_lock.ogg")
-	SoundMap["unlock"] = SoundBuffer("assets/ui_unlock.ogg")
-}
-
-func PlayConfirmationSound(cfg *config.Config, key *keymap.Key) {
-	if !key.Confirmation {
-		return
-	}
-
-	playSound("confirmation", cfg)
-}
-
-func PlayErrorSound(cfg *config.Config) {
-	playSound("error", cfg)
-}
-
-func PlayLockSound(cfg *config.Config) {
-	playSound("lock", cfg)
-}
-
-func PlayUnlockSound(cfg *config.Config) {
-	playSound("unlock", cfg)
-}
-
-func PlayToggleSound(cfg *config.Config, key *keymap.Key) {
-	if !key.CanRoll() {
-		return
-	}
-
-	if key.CommandIndex == 0 {
-		playSound("down", cfg)
-	} else {
-		playSound("up", cfg)
-	}
-}
-
-func PlayTapSound(cfg *config.Config, key *keymap.Key) {
-	playSound("tap", cfg)
-}
-
-func SoundBuffer(path string) *Sound {
 	b, err := asset.AssetFS.Open(path)
-
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	streamer, format, err := vorbis.Decode(b)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	buffer := beep.NewBuffer(format)
 	buffer.Append(streamer)
 	err = streamer.Close()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	return &Sound{
-		Path:   path,
-		Format: format,
-		Buffer: *buffer,
+	if len(cache) == 0 {
+		if err = speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/30)); err != nil {
+			return err
+		}
 	}
+
+	cache[name] = buffer
+	return nil
 }
 
-func playSound(name string, cfg *config.Config) {
-	if !cfg.Keymap.SoundAllowed {
-		return
+func Play(name Name) error {
+	if buffer, found := cache[name]; found {
+		stream := buffer.Streamer(0, buffer.Len())
+		speaker.Play(stream)
+		return nil
 	}
 
-	if buffer, ok := SoundMap[name]; ok {
-		buffer.Play()
-	} else {
-		log.Printf("cannot play unknown sound '%s'", name)
+	if err := load(name); err != nil {
+		return err
 	}
+	return Play(name)
+
 }

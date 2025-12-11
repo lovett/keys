@@ -6,7 +6,6 @@ import (
 	"keys/internal/config"
 	"keys/internal/device"
 	"keys/internal/server"
-	"keys/internal/sound"
 	"log"
 	"strings"
 )
@@ -31,7 +30,6 @@ func Start(cfg *config.Config, args []string) int {
 	}
 
 	if strings.Contains(*inputs, "browser") {
-		sound.LoadSounds()
 		server.Serve(cfg, *port)
 	}
 
