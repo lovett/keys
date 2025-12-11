@@ -248,13 +248,13 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 	case "lock":
 		s.maybePlaySound(sound.Lock)
 		s.Config.KeyboardLocked = true
-		key.RollForward()
+		key.Toggle()
 		stdout = []byte("Keyboard locked")
 		w.Header().Set("X-Keys-Locked", "1")
 	case "unlock":
 		s.maybePlaySound(sound.Unlock)
 		s.Config.KeyboardLocked = false
-		key.RollForward()
+		key.Toggle()
 		stdout = []byte("Keyboard unlocked")
 		w.Header().Set("X-Keys-Locked", "0")
 	default:
@@ -271,7 +271,7 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if key.CanRoll() {
+	if key.CanToggle() {
 		w.Header().Set("X-Keys-State", key.State())
 	}
 

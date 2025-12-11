@@ -47,7 +47,7 @@ func TestKey(t *testing.T) {
 		t.Fatal("Valid key was rejected")
 	}
 
-	if key.CanRoll() {
+	if key.CanToggle() {
 		t.Fatal("Single-command key cannot roll")
 	}
 
@@ -68,14 +68,14 @@ func TestCommandRequired(t *testing.T) {
 	}
 }
 
-func TestRoll(t *testing.T) {
+func TestToggle(t *testing.T) {
 	key := loadKeyFromFixture(t, "key-roll.ini")
 
 	if key.CommandIndex != 0 {
 		t.Fatal("Command index did not start at zero")
 	}
 
-	if !key.CanRoll() {
+	if !key.CanToggle() {
 		t.Fatal("Multi-command key should be able to roll")
 	}
 
@@ -91,7 +91,7 @@ func TestRoll(t *testing.T) {
 		t.Fatalf("Unexpected first state: %s", key.State())
 	}
 
-	key.RollForward()
+	key.Toggle()
 	if key.CurrentCommand() != "echo hello 2" {
 		t.Errorf("Unexpected second command: %s", key.CurrentCommand())
 	}
@@ -100,7 +100,7 @@ func TestRoll(t *testing.T) {
 		t.Fatalf("Unexpected second state: %s", key.State())
 	}
 
-	key.RollForward()
+	key.Toggle()
 	if key.CurrentCommand() != "echo hello 3" {
 		t.Errorf("Unexpected second command: %s", key.CurrentCommand())
 	}
@@ -109,7 +109,7 @@ func TestRoll(t *testing.T) {
 		t.Fatalf("Unexpected third state: %s", key.State())
 	}
 
-	key.RollForward()
+	key.Toggle()
 	if key.CurrentCommand() != "echo hello" {
 		t.Errorf("Failed to return to first command")
 	}
@@ -119,7 +119,7 @@ func TestRoll(t *testing.T) {
 	}
 }
 
-func TestRollCommandStateMismatch(t *testing.T) {
+func TestToggleCommandStateMismatch(t *testing.T) {
 	key := loadKeyFromFixture(t, "key-roll-invalid.ini")
 
 	if key != nil {

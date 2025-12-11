@@ -50,7 +50,7 @@ func (k *Key) CanLock() bool {
 	return k.CurrentCommand() == "lock" || k.CurrentCommand() == "unlock"
 }
 
-func (k *Key) CanRoll() bool {
+func (k *Key) CanToggle() bool {
 	return len(k.Commands) > 1
 }
 
@@ -75,7 +75,7 @@ func (k *Key) MatchesName(name string) bool {
 }
 
 func (k *Key) State() string {
-	if !k.CanRoll() {
+	if !k.CanToggle() {
 		return ""
 	}
 
@@ -90,8 +90,8 @@ func (k *Key) CurrentCommand() string {
 	return k.Commands[k.CommandIndex]
 }
 
-func (k *Key) RollForward() {
-	if !k.CanRoll() {
+func (k *Key) Toggle() {
+	if !k.CanToggle() {
 		return
 	}
 
@@ -109,7 +109,7 @@ func (k *Key) RunCommand() ([]byte, error) {
 
 	cmd := exec.CommandContext(ctx, "sh", "-c", k.CurrentCommand())
 
-	k.RollForward()
+	k.Toggle()
 
 	return cmd.Output()
 }
