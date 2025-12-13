@@ -4,7 +4,13 @@ import (
 	"testing"
 )
 
+func clearCache() {
+	clear(hashCache)
+}
+
 func TestAssetRead(t *testing.T) {
+	t.Cleanup(clearCache)
+
 	tests := []struct {
 		path string
 		mime string
@@ -40,6 +46,8 @@ func TestAssetRead(t *testing.T) {
 }
 
 func TestAssetExistence(t *testing.T) {
+	t.Cleanup(clearCache)
+
 	asset, _ := Read("does-not-exist")
 	if asset != nil {
 		t.Errorf("Nonexistant asset path should have been rejected")
@@ -47,6 +55,8 @@ func TestAssetExistence(t *testing.T) {
 }
 
 func TestVersionDefault(t *testing.T) {
+	t.Cleanup(clearCache)
+
 	b := ReadVersion()
 
 	if string(b) != "unknown" {
@@ -55,6 +65,8 @@ func TestVersionDefault(t *testing.T) {
 }
 
 func TestAssetHashMatching(t *testing.T) {
+	t.Cleanup(clearCache)
+
 	tests := []struct {
 		hash  string
 		match bool
@@ -74,5 +86,31 @@ func TestAssetHashMatching(t *testing.T) {
 		if result != tt.match {
 			t.Fatalf("Hash matching failure: got %t for %s", result, tt.hash)
 		}
+	}
+}
+
+func TestAssetHashCaching(t *testing.T) {
+	t.Cleanup(clearCache)
+
+	path := "assets/keys.css"
+	a1, err := Read(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a1.Hash == "" {
+		t.Fatal("Asset hash wasn't set after first read")
+	}
+
+	a2, err := Read(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if a2.Hash == "" {
+		t.Errorf("Asset hash wasn't set after second read")
+	}
+
+	if a1.Hash != a2.Hash {
+		t.Errorf("Asset hash mismatch between first and second read")
 	}
 }

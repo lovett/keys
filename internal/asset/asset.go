@@ -49,9 +49,12 @@ func Read(path string) (*Asset, error) {
 	}
 
 	if asset.MimeType != "" {
-		if _, found := hashCache[asset.Path]; !found {
+		hash, found := hashCache[asset.Path]
+		if !found {
 			hash := fmt.Sprintf("%x", md5.Sum(asset.Bytes))
 			hashCache[asset.Path] = hash
+			asset.Hash = hash
+		} else {
 			asset.Hash = hash
 		}
 	}
