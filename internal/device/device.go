@@ -1,16 +1,13 @@
 package device
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
 	"keys/internal/config"
 	"log"
 	"net/http"
-	"os"
 	"os/user"
 	"path/filepath"
-	"strconv"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -24,9 +21,15 @@ type EventPair struct {
 }
 
 func Listen(cfg *config.Config) {
+	result, err := canListen()
+	if err != nil {
+		log.Fatalf("Failed to confirm ability to listen: %s", err)
+		return
+	}
 
-	if !userInGroup("input") {
-		log.Fatal("Current user doesn't belong to input group")
+	if !result {
+		log.Fatalf("Current user cannot listen to keyboard events")
+		return
 	}
 
 	var wg sync.WaitGroup
@@ -35,14 +38,19 @@ func Listen(cfg *config.Config) {
 
 	wg.Add(1)
 	if cfg.Mode == config.KeyTestMode {
-		go testFire(c, cfg)
+		go echo(c, cfg)
 	} else {
-		go fire(c, cfg)
+		go trigger(c, cfg)
 	}
 
-	for _, device := range ListDevices() {
+	devices, err := ListDevices()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, device := range devices {
 		if cfg.Keymap.DesignatedKeyboard != "" && device != cfg.Keymap.DesignatedKeyboard {
-			log.Printf("Skipping %s\n", deviceName(device))
+			log.Printf("Skipping %s\n", filepath.Base(device))
 			continue
 		}
 
@@ -54,81 +62,16 @@ func Listen(cfg *config.Config) {
 	if cfg.KeyboardFound {
 		wg.Wait()
 	} else {
-		sleepDuration := time.Duration(10 * time.Second)
-		time.Sleep(sleepDuration)
+		time.Sleep(time.Duration(10 * time.Second))
 		Listen(cfg)
 	}
 }
 
-func userInGroup(groupName string) bool {
-	currentUser, err := user.Current()
-	if err != nil {
-		log.Fatal("Error getting current user:", err)
-	}
-
-	userGroupIds, err := currentUser.GroupIds()
-	if err != nil {
-		log.Fatal("Error getting user groups:", err)
-	}
-
-	inputGroup, err := user.LookupGroup(groupName)
-	if err != nil {
-		log.Fatalf("Error getting %s group: %s", groupName, err)
-	}
-
-	for _, id := range userGroupIds {
-		if id == inputGroup.Gid {
-			return true
-		}
-	}
-
-	return false
+func ListDevices() ([]string, error) {
+	return filepath.Glob("/dev/input/by-id/*-event-kbd")
 }
 
-func Prompt() (*string, error) {
-	devices := ListDevices()
-
-	if len(devices) == 0 {
-		return nil, errors.New("no keyboards found")
-	}
-
-	if len(devices) == 1 {
-		fmt.Printf("Only one keyboard found (%s) so using that.\n", devices[0])
-		return &devices[0], nil
-	}
-
-	fmt.Println("\nSelect a keyboard by number:")
-	for i, device := range devices {
-		fmt.Printf("%2d. %s\n", i+1, device)
-	}
-
-	fmt.Println("")
-
-	reader := bufio.NewReader(os.Stdin)
-	answer, _ := reader.ReadString('\n')
-
-	index, err := strconv.Atoi(strings.TrimSuffix(answer, "\n"))
-	if err != nil {
-		return nil, errors.New("invalid input")
-	}
-
-	if index < 1 || index > len(devices) {
-		return nil, errors.New("invalid selection")
-	}
-
-	return &devices[index-1], nil
-}
-
-func ListDevices() []string {
-	matches, err := filepath.Glob("/dev/input/by-id/*-event-kbd")
-	if err != nil {
-		log.Fatalf("Failed to find input devices: %v", err)
-	}
-
-	return matches
-}
-
-func testFire(c chan *EventPair, cfg *config.Config) {
+func echo(c chan *EventPair, cfg *config.Config) {
 	for pair := range c {
 		codeName := evdev.CodeName(pair.Event.Type, pair.Event.Code)
 		format := "\nKey pressed on %s: %s \n"
@@ -140,13 +83,13 @@ func testFire(c chan *EventPair, cfg *config.Config) {
 
 		fmt.Printf(
 			format,
-			deviceName(pair.Path),
+			filepath.Base(pair.Path),
 			key.PhysicalKey,
 		)
 	}
 }
 
-func fire(c chan *EventPair, cfg *config.Config) {
+func trigger(c chan *EventPair, cfg *config.Config) {
 	var timer *time.Timer
 	keyBuffer := []string{}
 
@@ -190,11 +133,10 @@ func fire(c chan *EventPair, cfg *config.Config) {
 func listener(path string, c chan *EventPair, wg *sync.WaitGroup, cfg *config.Config) {
 	defer wg.Done()
 
-	deviceName := deviceName(path)
 	device, err := evdev.Open(path)
 
 	if err != nil {
-		log.Fatalf("Failed to open device %s: %v", deviceName, err)
+		log.Fatalf("Failed to open device %s: %v", filepath.Base(path), err)
 	}
 	defer func() {
 		err := device.Close()
@@ -206,17 +148,17 @@ func listener(path string, c chan *EventPair, wg *sync.WaitGroup, cfg *config.Co
 	if path == cfg.Keymap.DesignatedKeyboard {
 		err = device.Grab()
 		if err != nil {
-			log.Fatalf("Failed to grab device %s: %v", deviceName, err)
+			log.Fatalf("Failed to grab device %s: %v", filepath.Base(path), err)
 		}
-		log.Printf("Grabbed %s for exclusive access\n", deviceName)
+		log.Printf("Grabbed %s for exclusive access\n", filepath.Base(path))
 		defer func() {
 			err := device.Ungrab()
 			if err != nil {
-				log.Fatalf("failed to ungrab deice %s: %v", deviceName, err)
+				log.Fatalf("failed to ungrab deice %s: %v", filepath.Base(path), err)
 			}
 		}()
 	} else {
-		log.Printf("Listening for keyboard events on %s\n", deviceName)
+		log.Printf("Listening for keyboard events on %s\n", filepath.Base(path))
 	}
 
 	for {
@@ -233,6 +175,25 @@ func listener(path string, c chan *EventPair, wg *sync.WaitGroup, cfg *config.Co
 	}
 }
 
-func deviceName(path string) string {
-	return filepath.Base(path)
+func canListen() (bool, error) {
+	u, err := user.Current()
+	if err != nil {
+		return false, err
+	}
+
+	g, err := user.LookupGroup("input")
+	if err != nil {
+		return false, err
+	}
+
+	uids, err := u.GroupIds()
+	if err != nil {
+		return false, err
+	}
+
+	if slices.Contains(uids, g.Gid) {
+		return true, nil
+	}
+
+	return false, nil
 }
