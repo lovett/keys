@@ -40,7 +40,7 @@ func Select(cfg *config.Config, args []string) int {
 }
 
 func prompt() (*string, error) {
-	devices, err := device.ListDevices()
+	devices, err := device.ListKeyboards()
 	if err != nil {
 		return nil, err
 	}

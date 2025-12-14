@@ -26,7 +26,7 @@ func Test(cfg *config.Config, args []string) int {
 }
 
 func TestKey(cfg *config.Config) {
-	log.Println("Running key test. Press a key to see its name.")
+	log.Print("Press a key to see its details. Control-c to cancel.\n\n")
 	cfg.EnableKeyTestMode()
 	device.Listen(cfg)
 }

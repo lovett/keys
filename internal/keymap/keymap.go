@@ -103,9 +103,14 @@ func (km *Keymap) findKeyByName(name string) *Key {
 	return NewKeyFromSection(section, "")
 }
 
+func (km *Keymap) Translate(codeName string) string {
+	translation := strings.ReplaceAll(codeName, "KEY_", "")
+	translation = strings.ReplaceAll(translation, ",", "")
+	return strings.ToLower(translation)
+}
+
 func (km *Keymap) findKeyByPhysicalKey(physicalKey string) *Key {
-	wanted := strings.ReplaceAll(physicalKey, "KEY_", "")
-	wanted = strings.ReplaceAll(wanted, ",", "")
+	wanted := km.Translate(physicalKey)
 
 	for _, section := range km.Content.Sections() {
 		iniKey, err := section.GetKey("physical_key")

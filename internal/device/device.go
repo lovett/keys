@@ -15,15 +15,15 @@ import (
 	"github.com/holoplot/go-evdev"
 )
 
-type EventPair struct {
-	Event *evdev.InputEvent
-	Path  string
+type deviceEvent struct {
+	DevicePath string
+	Event      *evdev.InputEvent
 }
 
 func Listen(cfg *config.Config) {
 	result, err := canListen()
 	if err != nil {
-		log.Fatalf("Failed to confirm ability to listen: %s", err)
+		log.Fatal(err)
 		return
 	}
 
@@ -32,18 +32,18 @@ func Listen(cfg *config.Config) {
 		return
 	}
 
+	c := make(chan *deviceEvent)
+
 	var wg sync.WaitGroup
-
-	c := make(chan *EventPair)
-
 	wg.Add(1)
+
 	if cfg.Mode == config.KeyTestMode {
 		go echo(c, cfg)
 	} else {
 		go trigger(c, cfg)
 	}
 
-	devices, err := ListDevices()
+	devices, err := ListKeyboards()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func Listen(cfg *config.Config) {
 
 		cfg.KeyboardFound = true
 		wg.Add(1)
-		go listener(device, c, &wg, cfg)
+		go open(device, c, &wg, cfg)
 	}
 
 	if cfg.KeyboardFound {
@@ -67,29 +67,29 @@ func Listen(cfg *config.Config) {
 	}
 }
 
-func ListDevices() ([]string, error) {
+func ListKeyboards() ([]string, error) {
 	return filepath.Glob("/dev/input/by-id/*-event-kbd")
 }
 
-func echo(c chan *EventPair, cfg *config.Config) {
-	for pair := range c {
+func echo(pairs <-chan *deviceEvent, cfg *config.Config) {
+	for pair := range pairs {
 		codeName := evdev.CodeName(pair.Event.Type, pair.Event.Code)
-		format := "\nKey pressed on %s: %s \n"
-		if cfg.Keymap.DesignatedKeyboard != "" && pair.Path == cfg.Keymap.DesignatedKeyboard {
-			format = format[1:]
+		translatedName := cfg.Keymap.Translate(codeName)
+
+		fmt.Println("")
+		fmt.Printf("Code: %s\n", codeName)
+		fmt.Printf("From: %s\n", pair.DevicePath)
+		fmt.Printf("Translates to: %s\n", translatedName)
+
+		key := cfg.Keymap.FindKey(translatedName)
+		if key != nil {
+			fmt.Printf("Mapped to: %s\n", key.Name)
 		}
-
-		key := cfg.Keymap.FindKey(codeName)
-
-		fmt.Printf(
-			format,
-			filepath.Base(pair.Path),
-			key.PhysicalKey,
-		)
+		fmt.Print("\n")
 	}
 }
 
-func trigger(c chan *EventPair, cfg *config.Config) {
+func trigger(c chan *deviceEvent, cfg *config.Config) {
 	var timer *time.Timer
 	keyBuffer := []string{}
 
@@ -130,47 +130,49 @@ func trigger(c chan *EventPair, cfg *config.Config) {
 	}
 }
 
-func listener(path string, c chan *EventPair, wg *sync.WaitGroup, cfg *config.Config) {
+func open(path string, c chan *deviceEvent, wg *sync.WaitGroup, cfg *config.Config) {
 	defer wg.Done()
 
-	device, err := evdev.Open(path)
+	deviceName := filepath.Base(path)
 
+	device, err := evdev.Open(path)
 	if err != nil {
-		log.Fatalf("Failed to open device %s: %v", filepath.Base(path), err)
+		log.Fatalf("unable to open %s: %s", deviceName, err)
 	}
+
 	defer func() {
 		err := device.Close()
 		if err != nil {
-			log.Fatal(err.Error())
+			log.Fatalf("unable to close %s: %s", deviceName, err)
 		}
 	}()
 
 	if path == cfg.Keymap.DesignatedKeyboard {
 		err = device.Grab()
 		if err != nil {
-			log.Fatalf("Failed to grab device %s: %v", filepath.Base(path), err)
+			log.Fatalf("unable to grab %s: %s", deviceName, err)
 		}
-		log.Printf("Grabbed %s for exclusive access\n", filepath.Base(path))
+
+		log.Printf("Grabbed %s for exclusive access\n", deviceName)
+
 		defer func() {
 			err := device.Ungrab()
 			if err != nil {
-				log.Fatalf("failed to ungrab deice %s: %v", filepath.Base(path), err)
+				log.Fatalf("unable to ungrab %s: %s", deviceName, err)
 			}
 		}()
-	} else {
-		log.Printf("Listening for keyboard events on %s\n", filepath.Base(path))
 	}
 
 	for {
 		event, err := device.ReadOne()
 		if err != nil {
-			log.Printf("Failed to read keyboard input: %s", err)
+			log.Fatalf("unable to read input: %s", err)
 			Listen(cfg)
 			return
 		}
 
 		if event.Type == evdev.EV_KEY && event.Value == 0 {
-			c <- &EventPair{event, path}
+			c <- &deviceEvent{path, event}
 		}
 	}
 }
