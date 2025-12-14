@@ -10,6 +10,7 @@ import (
 	"keys/internal/sound"
 	"log"
 	"net/http"
+	"slices"
 	"strings"
 	texttemplate "text/template"
 )
@@ -36,7 +37,7 @@ func Serve(cfg *config.Config, port int) {
 	mux.HandleFunc("GET /version", s.versionHandler)
 	mux.HandleFunc("POST /edit", s.saveHandler)
 	mux.HandleFunc("POST /trigger/physical/{key}", s.triggerHandler)
-	mux.HandleFunc("POST /trigger/{key}", s.triggerHandler)
+	mux.HandleFunc("POST /trigger/{name}", s.triggerHandler)
 	mux.HandleFunc("GET /util/sh", s.shellHandler)
 	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)
 	log.Printf("Config file is %s", cfg.Keymap.Filename)
@@ -67,12 +68,29 @@ func serverHeaders(next http.Handler, config *config.Config) http.Handler {
 	})
 }
 
-func (s *Server) keymapHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("accept") == "text/plain" {
-		s.keymapTextWriter(w, r)
-	} else {
-		s.keymapHtmlWriter(w)
+func (s *Server) acceptableRequest(w http.ResponseWriter, r *http.Request, acceptableContentTypes []string) bool {
+	accept := r.Header.Get("Accept")
+	if accept == "" {
+		accept = "text/html"
 	}
+
+	if !slices.Contains(acceptableContentTypes, accept) {
+		http.Error(w, "Unsupported content type.", http.StatusNotAcceptable)
+		return false
+	}
+
+	return true
+}
+
+func (s *Server) keymapHandler(w http.ResponseWriter, r *http.Request) {
+	if !s.acceptableRequest(w, r, []string{"text/html", "text/plain"}) {
+		return
+	}
+
+	if r.Header.Get("Accept") == "text/plain" {
+		s.keymapTextWriter(w, r)
+	}
+	s.keymapHtmlWriter(w)
 }
 
 func (s *Server) keymapTextWriter(w http.ResponseWriter, r *http.Request) {
@@ -187,6 +205,10 @@ func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) editHandler(w http.ResponseWriter, r *http.Request) {
+	if !s.acceptableRequest(w, r, []string{"text/html"}) {
+		return
+	}
+
 	templates := htmltemplate.Must(htmltemplate.ParseFS(asset.AssetFS, "assets/layout.html", "assets/editor.html"))
 
 	var output bytes.Buffer
@@ -225,7 +247,7 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) maybePlaySound(name sound.Name) {
 	if s.Config.Keymap.SoundAllowed {
-		s.maybePlaySound(sound.Error)
+		return
 	}
 
 	if err := sound.Play(name); err != nil {
@@ -234,11 +256,10 @@ func (s *Server) maybePlaySound(name sound.Name) {
 }
 
 func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
-	key := s.Config.Keymap.FindKey(r.PathValue("key"))
-
+	key := s.Config.Keymap.FindKey(r.PathValue("name"))
 	if key == nil {
-		s.sendError(w, "Invalid key")
 		s.maybePlaySound(sound.Error)
+		http.NotFound(w, r)
 		return
 	}
 
