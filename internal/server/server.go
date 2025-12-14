@@ -283,7 +283,7 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		stdout, err = key.RunCommand()
 		if err != nil {
 			s.maybePlaySound(sound.Error)
-			s.sendError(w, err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -316,13 +316,6 @@ func (s *Server) versionHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write(asset.ReadVersion()); err != nil {
 		log.Fatalf("unable to write version response body: %v", err)
-	}
-}
-
-func (s *Server) sendError(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusUnprocessableEntity)
-	if _, err := w.Write([]byte(message)); err != nil {
-		log.Fatalf("unable to write error response body: %v", err)
 	}
 }
 
