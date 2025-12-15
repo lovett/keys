@@ -6,46 +6,41 @@ import (
 	"testing"
 )
 
-func fixturePath(t *testing.T, filename string) string {
+func configFromFixture(t *testing.T, filename string) (*Config, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testdata := filepath.Join(wd, "../../testdata")
-	return filepath.Join(testdata, filename)
+	fixture := filepath.Join(wd, "../../testdata", filename)
+	return NewConfig(fixture)
 }
 
 func TestConfigExistence(t *testing.T) {
-	fixture := fixturePath(t, "does-not-exist")
-	_, err := NewConfig(fixture)
-	if err == nil {
-		t.Fatal("Nonexistent config file should have been rejected")
+	if _, err := configFromFixture(t, "does-not-exist"); err == nil {
+		t.Error("nonexistent config file was not rejected")
 	}
 }
 
 func TestConfigFileValidity(t *testing.T) {
-	fixture := fixturePath(t, "invalid.ini")
-	_, err := NewConfig(fixture)
-	if err == nil {
-		t.Fatal("Malformed config file should have been rejected")
+	if _, err := configFromFixture(t, "invalid.ini"); err == nil {
+		t.Error("malformed config file was not rejected")
 	}
 }
 
 func TestEnableKeyTestMode(t *testing.T) {
-	fixture := fixturePath(t, "empty.ini")
-	cfg, err := NewConfig(fixture)
+	cfg, err := configFromFixture(t, "empty.ini")
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	if cfg.Mode != NormalMode {
-		t.Error("Configuration did not start in normal mode")
+		t.Error("config did not start in normal mode")
 	}
 
 	cfg.EnableKeyTestMode()
 
 	if cfg.Mode != KeyTestMode {
-		t.Error("Configuration did not switch to key test mode")
+		t.Error("config mode did not change")
 	}
 }
