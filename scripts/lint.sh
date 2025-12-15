@@ -9,7 +9,7 @@ lint_js() {
 }
 
 lint_go() {
-    golangci-lint run
+    golangci-lint --enable=gosec run
 }
 
 lint_openapi() {
