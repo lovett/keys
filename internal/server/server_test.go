@@ -172,9 +172,8 @@ func TestAssetHandler(t *testing.T) {
 			t.Errorf("expected %s, got %s", tt.contentType, contentType)
 		}
 
-		etag := rr.Header().Get("Etag")
-		if len(etag) != 32 {
-			t.Errorf("etag header was not a 32-char string. got %s", etag)
+		if rr.Header().Get("Etag") == "" {
+			t.Errorf("etag value was empty")
 		}
 	}
 }
@@ -193,9 +192,8 @@ func TestAssetHandlerBogusHash(t *testing.T) {
 		t.Errorf("expected %d, got %d", http.StatusOK, rr.Code)
 	}
 
-	etag := rr.Header().Get("Etag")
-	if len(etag) != 32 {
-		t.Errorf("etag value was not a 32-char string: '%s'", etag)
+	if rr.Header().Get("Etag") == "" {
+		t.Errorf("etag value was empty")
 	}
 }
 

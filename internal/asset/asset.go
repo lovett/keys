@@ -1,7 +1,7 @@
 package asset
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"embed"
 	"fmt"
 	"path/filepath"
@@ -51,7 +51,7 @@ func Read(path string) (*Asset, error) {
 	if asset.MimeType != "" {
 		hash, found := hashCache[asset.Path]
 		if !found {
-			hash := fmt.Sprintf("%x", md5.Sum(asset.Bytes))
+			hash := fmt.Sprintf("%x", sha256.Sum256(asset.Bytes))
 			hashCache[asset.Path] = hash
 			asset.Hash = hash
 		} else {
