@@ -6,6 +6,7 @@ import (
 	"keys/internal/device"
 	"keys/internal/sound"
 	"log"
+	"os"
 )
 
 func Test(cfg *config.Config, args []string) int {
@@ -26,6 +27,16 @@ func Test(cfg *config.Config, args []string) int {
 }
 
 func TestKey(cfg *config.Config) {
+	devices, err := device.ListKeyboards()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(devices) == 0 {
+		fmt.Fprint(os.Stderr, "No keyboard devices found.\n")
+		os.Exit(1)
+	}
+
 	log.Print("Press a key to see its details. Control-c to cancel.\n\n")
 	cfg.EnableKeyTestMode()
 	device.Listen(cfg)
