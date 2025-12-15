@@ -3,8 +3,10 @@ package device
 import (
 	"fmt"
 	"keys/internal/config"
+	"keys/internal/keymap"
 	"log"
 	"net/http"
+	"net/url"
 	"os/user"
 	"path/filepath"
 	"slices"
@@ -15,33 +17,36 @@ import (
 	"github.com/holoplot/go-evdev"
 )
 
-type deviceEvent struct {
+type DeviceEvent struct {
 	DevicePath string
 	Event      *evdev.InputEvent
 }
 
 func Listen(cfg *config.Config) {
-	result, err := canListen()
-	if err != nil {
+	var (
+		u   *user.User
+		g   *user.Group
+		err error
+	)
+
+	if u, err = user.Current(); err != nil {
 		log.Fatal(err)
+	}
+
+	if g, err = user.LookupGroup("input"); err != nil {
+		log.Fatal(err)
+	}
+
+	if !canListen(u, g) {
+		log.Fatal("current user cannot listen to keyboard events")
 		return
 	}
 
-	if !result {
-		log.Fatalf("Current user cannot listen to keyboard events")
-		return
-	}
-
-	c := make(chan *deviceEvent)
+	c := make(chan *DeviceEvent)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-
-	if cfg.Mode == config.KeyTestMode {
-		go echo(c, cfg)
-	} else {
-		go trigger(c, cfg)
-	}
+	go worker(c, cfg)
 
 	devices, err := ListKeyboards()
 	if err != nil {
@@ -71,47 +76,25 @@ func ListKeyboards() ([]string, error) {
 	return filepath.Glob("/dev/input/by-id/*-event-kbd")
 }
 
-func echo(pairs <-chan *deviceEvent, cfg *config.Config) {
-	for pair := range pairs {
-		codeName := evdev.CodeName(pair.Event.Type, pair.Event.Code)
-		translatedName := cfg.Keymap.Translate(codeName)
-
-		fmt.Println("")
-		fmt.Printf("Code: %s\n", codeName)
-		fmt.Printf("From: %s\n", pair.DevicePath)
-		fmt.Printf("Translates to: %s\n", translatedName)
-
-		key := cfg.Keymap.FindKey(translatedName)
-		if key != nil {
-			fmt.Printf("Mapped to: %s\n", key.Name)
-		}
-		fmt.Print("\n")
-	}
-}
-
-func trigger(c chan *deviceEvent, cfg *config.Config) {
+func worker(deviceEvents <-chan *DeviceEvent, cfg *config.Config) {
 	var timer *time.Timer
 	keyBuffer := []string{}
 
 	callback := func() {
-		url := fmt.Sprintf("%s/trigger/%s", cfg.PublicUrl, strings.Join(keyBuffer, ","))
-		resp, err := http.Post(url, "", nil)
-
-		if err != nil {
-			log.Print("Error reading POST response:", err)
-			return
-		}
-
-		log.Printf("POST to %s returned %d", url, resp.StatusCode)
+		trigger(keyBuffer, cfg)
 		keyBuffer = keyBuffer[:0]
 	}
 
-	for pair := range c {
-		// Because the mute key on an Apple keyboard showed up as "mute/min_interesting".
-		codeName := strings.SplitN(evdev.CodeName(pair.Event.Type, pair.Event.Code), "/", 2)[0]
+	for deviceEvent := range deviceEvents {
+		if cfg.Mode == config.KeyTestMode {
+			echo(deviceEvent, cfg)
+			return
+		}
+
+		codeName := evdev.CodeName(deviceEvent.Event.Type, deviceEvent.Event.Code)
 
 		if cfg.KeyboardLocked {
-			log.Printf("Ignoring keypress of %s because keyboard is locked", codeName)
+			log.Printf("Ignoring keypress of %s because the keyboard is locked", codeName)
 			continue
 		}
 
@@ -130,7 +113,41 @@ func trigger(c chan *deviceEvent, cfg *config.Config) {
 	}
 }
 
-func open(path string, c chan *deviceEvent, wg *sync.WaitGroup, cfg *config.Config) {
+func echo(deviceEvent *DeviceEvent, cfg *config.Config) string {
+	codeName := evdev.CodeName(deviceEvent.Event.Type, deviceEvent.Event.Code)
+	translatedName := keymap.Translate(codeName)
+
+	key := cfg.Keymap.FindKey(translatedName)
+	var mappedKey string
+	if key != nil {
+		mappedKey = key.Name
+	} else {
+		mappedKey = "none"
+	}
+
+	return fmt.Sprintf(`
+
+Code: %s
+From: %s
+Translated to: %s
+Mapped to: %s
+`, codeName, deviceEvent.DevicePath, translatedName, mappedKey)
+}
+
+func trigger(keyBuffer []string, cfg *config.Config) {
+	key := strings.Join(keyBuffer, ",")
+	url := fmt.Sprintf("%s/trigger/%s", cfg.PublicUrl, url.PathEscape(key))
+	resp, err := http.Post(url, "", nil)
+
+	if err != nil {
+		log.Print("Error reading POST response:", err)
+		return
+	}
+
+	log.Printf("POST to %s returned %d", url, resp.StatusCode)
+}
+
+func open(path string, c chan *DeviceEvent, wg *sync.WaitGroup, cfg *config.Config) {
 	defer wg.Done()
 
 	deviceName := filepath.Base(path)
@@ -172,30 +189,14 @@ func open(path string, c chan *deviceEvent, wg *sync.WaitGroup, cfg *config.Conf
 		}
 
 		if event.Type == evdev.EV_KEY && event.Value == 0 {
-			c <- &deviceEvent{path, event}
+			c <- &DeviceEvent{path, event}
 		}
 	}
 }
 
-func canListen() (bool, error) {
-	u, err := user.Current()
-	if err != nil {
-		return false, err
+func canListen(u *user.User, group *user.Group) bool {
+	if uids, err := u.GroupIds(); err == nil {
+		return slices.Contains(uids, group.Gid)
 	}
-
-	g, err := user.LookupGroup("input")
-	if err != nil {
-		return false, err
-	}
-
-	uids, err := u.GroupIds()
-	if err != nil {
-		return false, err
-	}
-
-	if slices.Contains(uids, g.Gid) {
-		return true, nil
-	}
-
-	return false, nil
+	return false
 }
