@@ -360,6 +360,7 @@ func TestKeymapHandler(t *testing.T) {
 	}{
 		{"text/plain", "test2 (w)\n  echo hello world", 200},
 		{"text/html", "href=\"/trigger/test2\"", 200},
+		{"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "\"/trigger/test2\"", 200},
 		{"", "href=\"/trigger/test2\"", 200},
 		{"garbage", "Unsupported", 406},
 	}

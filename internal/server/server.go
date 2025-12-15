@@ -10,7 +10,6 @@ import (
 	"keys/internal/sound"
 	"log"
 	"net/http"
-	"slices"
 	"strings"
 	texttemplate "text/template"
 )
@@ -73,12 +72,14 @@ func (s *Server) acceptableRequest(w http.ResponseWriter, r *http.Request, accep
 		accept = "text/html"
 	}
 
-	if !slices.Contains(acceptableContentTypes, accept) {
-		http.Error(w, "Unsupported content type.", http.StatusNotAcceptable)
-		return false
+	for _, contentType := range acceptableContentTypes {
+		if strings.Contains(accept, contentType) {
+			return true
+		}
 	}
 
-	return true
+	http.Error(w, "Unsupported content type.", http.StatusNotAcceptable)
+	return false
 }
 
 func (s *Server) keymapHandler(w http.ResponseWriter, r *http.Request) {
