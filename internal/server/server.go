@@ -36,7 +36,6 @@ func Serve(cfg *config.Config, port int) {
 	mux.HandleFunc("GET /openapi.yaml", s.openapiHandler)
 	mux.HandleFunc("GET /version", s.versionHandler)
 	mux.HandleFunc("POST /edit", s.saveHandler)
-	mux.HandleFunc("POST /trigger/physical/{key}", s.triggerHandler)
 	mux.HandleFunc("POST /trigger/{name}", s.triggerHandler)
 	mux.HandleFunc("GET /util/sh", s.shellHandler)
 	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)

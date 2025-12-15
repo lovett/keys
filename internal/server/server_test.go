@@ -17,7 +17,7 @@ import (
 
 func failIfServerError(t *testing.T, rr *httptest.ResponseRecorder) {
 	if rr.Code == http.StatusInternalServerError {
-		t.Fatal(rr.Body.String())
+		t.Fatalf("Server returned 500 error")
 	}
 }
 
@@ -240,25 +240,27 @@ func TestTriggerHandler(t *testing.T) {
 	server := serverFixture(t, "key-multiple.ini")
 
 	tests := []struct {
-		name string
-		key  string
-		code int
+		trigger string
+		code    int
 	}{
-		{"invalid", "", http.StatusNotFound},
-		{"test", "", http.StatusOK},
+		{"invalid", http.StatusNotFound},
+		{"mute", http.StatusOK},
+		{"mute/min_interesting", http.StatusOK},
+		{"test", http.StatusOK},
+		{"w", http.StatusOK},
 	}
 
 	for _, tt := range tests {
 		req := httptest.NewRequest("POST", "/", nil)
-		req.SetPathValue("name", tt.name)
-		req.SetPathValue("key", tt.key)
+		req.SetPathValue("name", tt.trigger)
+
 		rr := httptest.NewRecorder()
 		handler := http.HandlerFunc(server.triggerHandler)
 		handler.ServeHTTP(rr, req)
 		failIfServerError(t, rr)
 
 		if rr.Code != tt.code {
-			t.Errorf("expected %d, got %d", tt.code, rr.Code)
+			t.Errorf("trigger \"%s\" expected %d, got %d", tt.trigger, tt.code, rr.Code)
 		}
 
 		if rr.Header().Get("X-Keys-Locked") != "" {
