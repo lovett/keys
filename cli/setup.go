@@ -42,7 +42,7 @@ func installSystemdUserService() error {
 	destinationDir := filepath.Join(home, ".config", "systemd", "user")
 	destinationPath := filepath.Join(destinationDir, "keys.service")
 
-	if err := os.MkdirAll(destinationDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(destinationDir, 0750); err != nil {
 		return err
 	}
 
