@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"strings"
 	texttemplate "text/template"
+	"time"
 )
 
 type Server struct {
@@ -39,7 +40,16 @@ func Serve(cfg *config.Config, port int) {
 	mux.HandleFunc("GET /util/sh", s.shellHandler)
 	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)
 	log.Printf("Config file is %s", cfg.Keymap.Filename)
-	log.Fatal(http.ListenAndServe(s.ServerAddress, requestLogger(serverHeaders(mux, s.Config))))
+
+	server := &http.Server{
+		Addr:         s.ServerAddress,
+		Handler:      requestLogger(serverHeaders(mux, s.Config)),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
+	log.Fatal(server.ListenAndServe())
 }
 
 func requestLogger(next http.Handler) http.Handler {
