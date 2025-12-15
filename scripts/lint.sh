@@ -12,8 +12,19 @@ lint_go() {
     golangci-lint --enable=gosec run
 }
 
-lint_openapi() {
+lint_openapi_watch() {
     vacuum dashboard --watch internal/asset/assets/openapi.yaml
+}
+
+lint_openapi() {
+    case "$(vacuum lint --no-banner -q internal/asset/assets/openapi.yaml)" in
+        *"100/100"*)
+            echo "No issues in openapi.yaml"
+            ;;
+        *)
+            echo "$RESULT"
+            ;;
+    esac
 }
 
 lint_sh() {
@@ -31,7 +42,7 @@ case "${1-all}" in
         lint_js
         ;;
     openapi)
-        lint_openapi
+        lint_openapi_watch
         ;;
     sh)
         lint_sh
