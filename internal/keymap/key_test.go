@@ -76,15 +76,11 @@ func TestToggle(t *testing.T) {
 	}
 
 	if !key.CanToggle() {
-		t.Fatal("Multi-command key should be able to roll")
+		t.Fatal("Multi-command key should be able to toggle")
 	}
 
 	if key.CanLock() {
 		t.Fatal("Misidentified lock key")
-	}
-
-	if key.CurrentCommand() != "echo hello" {
-		t.Errorf("Unexpected first command: %s", key.CurrentCommand())
 	}
 
 	if key.State() != "state1" {
@@ -224,5 +220,29 @@ func TestCommand(t *testing.T) {
 
 	if command == key.CurrentCommand() {
 		t.Fatalf("Command did not advance after being run")
+	}
+}
+
+func TestCommands(t *testing.T) {
+	tests := []struct {
+		fixture string
+		current string
+		last    string
+	}{
+		{fixture: "key-roll.ini", current: "echo hello", last: "echo hello 3"},
+		{fixture: "key-single.ini", current: "echo hello", last: "echo hello"},
+	}
+	for _, tt := range tests {
+		key := loadKeyFromFixture(t, tt.fixture)
+
+		current := key.CurrentCommand()
+		if current != tt.current {
+			t.Errorf("Expected current command to be '%s', got '%s'", tt.current, current)
+		}
+
+		last := key.LastCommand()
+		if last != tt.last {
+			t.Errorf("Expected last command to be '%s', got '%s'", tt.current, last)
+		}
 	}
 }

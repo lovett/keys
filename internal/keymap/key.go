@@ -3,6 +3,7 @@ package keymap
 import (
 	"context"
 	"log"
+	"math"
 	"os/exec"
 	"strings"
 	"time"
@@ -51,7 +52,8 @@ func (k *Key) CanLock() bool {
 }
 
 func (k *Key) CanToggle() bool {
-	return len(k.Commands) > 1
+	count := len(k.Commands)
+	return count > 1 && count < math.MaxUint8
 }
 
 func (k *Key) MatchesCommand(command string) bool {
@@ -82,6 +84,15 @@ func (k *Key) State() string {
 	return k.States[k.CommandIndex]
 }
 
+func (k *Key) LastCommand() string {
+	count := len(k.Commands)
+	if count == 0 {
+		return ""
+	}
+
+	return k.Commands[count-1]
+}
+
 func (k *Key) CurrentCommand() string {
 	if len(k.Commands) == 0 {
 		return ""
@@ -95,9 +106,10 @@ func (k *Key) Toggle() {
 		return
 	}
 
-	k.CommandIndex += 1
-	if k.CommandIndex >= uint8(len(k.Commands)) {
+	if k.CurrentCommand() == k.LastCommand() {
 		k.CommandIndex = 0
+	} else {
+		k.CommandIndex += 1
 	}
 }
 
