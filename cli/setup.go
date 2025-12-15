@@ -6,6 +6,7 @@ import (
 	"keys/internal/asset"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"text/template"
@@ -39,14 +40,13 @@ func installSystemdUserService() error {
 		return err
 	}
 
-	destinationDir := filepath.Join(home, ".config", "systemd", "user")
-	destinationPath := filepath.Join(destinationDir, "keys.service")
+	destination := filepath.Clean(filepath.Join(home, ".config", "systemd", "user", "keys.service"))
 
-	if err := os.MkdirAll(destinationDir, 0750); err != nil {
+	if err := os.MkdirAll(path.Dir(destination), 0750); err != nil {
 		return err
 	}
 
-	f, err := os.Create(destinationPath)
+	f, err := os.Create(destination)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func installSystemdUserService() error {
 		return err
 	}
 
-	fmt.Printf("Wrote %s.\n\n", destinationPath)
+	fmt.Printf("Wrote %s.\n\n", destination)
 	fmt.Println("To enable: systemctl --user enable keys.service")
 	fmt.Println(" To start: systemctl --user start keys.service")
 
