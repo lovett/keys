@@ -107,6 +107,7 @@ func (k *Key) RunCommand() ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), k.Timeout)
 	defer cancel()
 
+	// #nosec [204] [-- The command being run intentionally comes from a user-supplied value.]
 	cmd := exec.CommandContext(ctx, "sh", "-c", k.CurrentCommand())
 
 	k.Toggle()
