@@ -137,14 +137,20 @@ Mapped to: %s
 func trigger(keyBuffer []string, cfg *config.Config) {
 	key := strings.Join(keyBuffer, ",")
 	url := fmt.Sprintf("%s/trigger/%s", cfg.PublicUrl, url.PathEscape(key))
-	resp, err := http.Post(url, "", nil)
 
+	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
-		log.Print("Error reading POST response:", err)
+		log.Fatalf("Error creating POST request: %s", err)
 		return
 	}
 
-	log.Printf("POST to %s returned %d", url, resp.StatusCode)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Fatalf("Error reading POST response: %s", err)
+		return
+	}
+
+	log.Printf("POST to %s returned %d", url, res.StatusCode)
 }
 
 func open(path string, c chan *DeviceEvent, wg *sync.WaitGroup, cfg *config.Config) {
