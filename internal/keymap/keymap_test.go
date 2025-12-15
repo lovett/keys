@@ -201,3 +201,20 @@ func TestDesignatedKeyboard(t *testing.T) {
 		}
 	}
 }
+
+func TestTranslate(t *testing.T) {
+	tests := []struct {
+		before string
+		after  string
+	}{
+		{"KEY_A", "a"},
+		{"KEY_A,KEY_B", "ab"},
+	}
+
+	for _, tt := range tests {
+		result := Translate(tt.before)
+		if result != tt.after {
+			t.Errorf("wanted %s, got %s", tt.after, result)
+		}
+	}
+}

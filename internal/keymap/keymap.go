@@ -19,6 +19,12 @@ type Keymap struct {
 	DesignatedKeyboard string
 }
 
+func Translate(codeName string) string {
+	translation := strings.ReplaceAll(codeName, "KEY_", "")
+	translation = strings.ReplaceAll(translation, ",", "")
+	return strings.ToLower(translation)
+}
+
 func NewKeymap(filename string) (*Keymap, error) {
 	km := Keymap{
 		Filename: filename,
@@ -103,14 +109,10 @@ func (km *Keymap) findKeyByName(name string) *Key {
 	return NewKeyFromSection(section, "")
 }
 
-func (km *Keymap) Translate(codeName string) string {
-	translation := strings.ReplaceAll(codeName, "KEY_", "")
-	translation = strings.ReplaceAll(translation, ",", "")
-	return strings.ToLower(translation)
-}
-
 func (km *Keymap) findKeyByPhysicalKey(physicalKey string) *Key {
-	wanted := km.Translate(physicalKey)
+	wanted := Translate(physicalKey)
+
+	fmt.Printf("want %s\n", wanted)
 
 	for _, section := range km.Content.Sections() {
 		iniKey, err := section.GetKey("physical_key")
