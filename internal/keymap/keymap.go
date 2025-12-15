@@ -112,8 +112,6 @@ func (km *Keymap) findKeyByName(name string) *Key {
 func (km *Keymap) findKeyByPhysicalKey(physicalKey string) *Key {
 	wanted := Translate(physicalKey)
 
-	fmt.Printf("want %s\n", wanted)
-
 	for _, section := range km.Content.Sections() {
 		iniKey, err := section.GetKey("physical_key")
 		if err != nil {

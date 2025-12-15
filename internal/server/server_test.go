@@ -385,7 +385,7 @@ func TestKeymapHandler(t *testing.T) {
 		}
 
 		if tt.status == http.StatusOK {
-			if tt.contentType != tt.contentType {
+			if tt.contentType != wantedContentType {
 				t.Errorf("expected %s, got %s", wantedContentType, contentType)
 			}
 		}

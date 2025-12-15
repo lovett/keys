@@ -99,8 +99,8 @@ func TestIteration(t *testing.T) {
 
 	keys := slices.Collect(km.Keys())
 
-	if len(keys) != 2 {
-		t.Fatalf("Iteration length mismatch. Wanted 2, got %d", len(keys))
+	if len(keys) != 3 {
+		t.Fatalf("Iteration length mismatch. Wanted 3, got %d", len(keys))
 	}
 
 	if keys[0].Row != "" {
