@@ -2,20 +2,18 @@ package cli
 
 import (
 	"flag"
+	"fmt"
+	"io"
 	"keys/internal/asset"
 	"keys/internal/config"
-	"log"
 	"os"
 	"path/filepath"
 )
 
-func Run() int {
-	log.SetFlags(0)
-	log.SetPrefix("")
-
+func Run(stdout io.Writer, stderr io.Writer) int {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		log.Println("Could not determine config dir. Giving up.")
+		fmt.Fprintln(stderr, "Could not determine config dir. Giving up.")
 		return 1
 	}
 
@@ -26,38 +24,40 @@ func Run() int {
 	flag.Parse()
 
 	if *versionFlag {
-		log.Println(string(asset.ReadVersion()))
+		fmt.Fprintln(stdout, string(asset.ReadVersion()))
 		return 0
 	}
 
 	cfg, err := config.NewConfig(*configFlag)
 	if err != nil {
-		log.Println("Could not parse config. Giving up.")
+		fmt.Fprintln(stderr, "Could not parse config. Giving up.")
 		return 1
 	}
 
-	var command string
-	if len(os.Args) > 1 {
-		command = os.Args[1]
+	command := flag.Arg(0)
+
+	var args []string
+	if flag.NArg() > 1 {
+		args = flag.Args()[1:]
 	}
 
 	switch command {
 	case "test":
-		return Test(cfg, os.Args[2:])
+		return Test(cfg, args)
 	case "setup":
-		return Setup(os.Args[2:])
+		return Setup(args)
 	case "select":
-		return Select(cfg, os.Args[2:])
+		return Select(cfg, args)
 	case "start":
-		return Start(cfg, os.Args[2:])
+		return Start(cfg, args)
 	default:
-		log.Println("Command not specified. Run keys --help for available commands.")
+		fmt.Fprintln(stderr, "Command not specified. Run keys --help for available commands.")
 		return 1
 	}
 }
 
 func topUsage() {
-	log.Print(`Use a regular keyboard as a macro pad to run arbitrary commands headlessly.
+	fmt.Print(`Use a regular keyboard as a macro pad to run arbitrary commands headlessly.
 
 Commands:
   select keyboard
