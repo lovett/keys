@@ -67,6 +67,7 @@ dl {
 }
 
 header {
+    user-select: none;
     position: sticky;
     top: 0;
     z-index: 2;
@@ -268,6 +269,7 @@ ul {
 }
 
 #keys li.row-header {
+    user-select: none;
     flex-basis: 100%;
     display: block;
     text-align: center;
@@ -278,6 +280,7 @@ ul {
 }
 
 #keys .key {
+    user-select: none;
     display: grid;
     height: 4em;
     grid-template-columns: 1fr auto;
