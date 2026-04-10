@@ -159,7 +159,7 @@ async function runTrigger(node) {
 
         if (locked) {
             document.getElementById('keys').classList.add('locked');
-            document.getElementById('config-locked').clasList.add('locked');
+            document.getElementById('config-locked').classList.add('locked');
         } else {
             document.getElementById('keys').classList.remove('locked');
             document.getElementById('config-locked').classList.remove('locked');
