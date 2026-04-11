@@ -103,7 +103,7 @@ window.addEventListener('app:fail', (e) => {
 
 window.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('save');
-    if (el instanceof HTMLButtonElement == false) return;
+    if (el instanceof HTMLButtonElement === false) return;
 
     el.addEventListener('click', () => {
         const node = document.querySelector('#editor form')
