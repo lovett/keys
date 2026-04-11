@@ -1,22 +1,21 @@
 let keyBuffer = '';
-let keyTimer;
+let keyTimer = 0;
 
 window.addEventListener('click', (e) => {
-    if (e.target.nodeName !== 'A') return;
+    const target = e.target;
+    if (target instanceof HTMLAnchorElement === false) return;
 
-    if (e.target.classList.contains('close')) {
+    if (target.classList.contains('close')) {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('app:clear'));
-        return;
     }
 
-    if (e.target.classList.contains('key')) {
+    if (target.classList.contains('key')) {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('app:start'));
 
         // Give the start message some time to display and not flicker.
-        setTimeout(() => runTrigger(e.target), 500);
-        return;
+        setTimeout(() => runTrigger(target), 500);
     }
 });
 
@@ -29,15 +28,16 @@ window.addEventListener('keyup', (e) => {
 
     if (e.key === 'E') {
         const node = document.querySelector('form.edit');
-        if (node) node.submit();
+        if (node instanceof HTMLFormElement) node.submit();
         return;
     }
 
-    if (['INPUT', 'SELECT', 'TEXTAREA'].indexOf(e.target.nodeName) > -1) return;
-
-    if (document.querySelector('#keys.locked')) {
-        return;
+    if (e.target instanceof HTMLElement) {
+        const tag = e.target.nodeName;
+        if (['INPUT', 'SELECT', 'TEXTAREA'].indexOf(tag) > -1) return;
     }
+
+    if (document.querySelector('#keys.locked')) return;
 
     keyBuffer += e.key;
     clearTimeout(keyTimer);
@@ -48,7 +48,7 @@ window.addEventListener('keyup', (e) => {
         return;
     }
 
-    if (nodes.length === 1 && nodes[0].dataset.keypress === keyBuffer) {
+    if (nodes.length === 1 && nodes[0] instanceof HTMLAnchorElement && nodes[0].dataset.keypress === keyBuffer) {
         nodes[0].click();
         keyBuffer = '';
         return;
@@ -56,22 +56,22 @@ window.addEventListener('keyup', (e) => {
 
     keyTimer = setTimeout(() => {
         const key = document.querySelector(`a.key[data-keypress='${keyBuffer}']`);
-        if (key) key.click();
+        if (key instanceof HTMLAnchorElement) key.click();
         keyBuffer = '';
     }, 250);
 });
 
 window.addEventListener('app:cancel', () => {
     const node = document.querySelector('#cancel');
-    if (!node) return;
-    node.click();
+    if (node instanceof HTMLAnchorElement) node.click();
 });
 
 window.addEventListener('app:clear', () => {
     const el = document.getElementById("status");
-    if (!el) return;
-    el.replaceChildren();
-    el.className = '';
+    if (el instanceof HTMLDivElement) {
+        el.replaceChildren();
+        el.className = '';
+    }
 });
 
 window.addEventListener('app:start', () => {
@@ -79,6 +79,7 @@ window.addEventListener('app:start', () => {
 });
 
 window.addEventListener('app:success', (e) => {
+    if (e instanceof CustomEvent === false) return;
     const message = e.detail.result ? e.detail.result : 'Done!';
     setStatus(message, 'success');
 
@@ -95,38 +96,52 @@ window.addEventListener('app:success', (e) => {
 });
 
 window.addEventListener('app:fail', (e) => {
+    if (e instanceof CustomEvent === false) return;
     const message = e.detail.status < 500 ? e.detail.result : 'Service Unavailable';
     setStatus(message, 'fail');
 });
 
 window.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('save');
-    if (el) {
-        el.addEventListener('click', () => {
-            document.querySelector('#editor form').submit();
-        });
-    }
+    if (el instanceof HTMLButtonElement == false) return;
+
+    el.addEventListener('click', () => {
+        const node = document.querySelector('#editor form')
+        if (node instanceof HTMLFormElement) node.submit();
+    });
 });
 
+/**
+ * @param {string} message
+ * @param {string} type
+ */
 function setStatus(message, type) {
     const container = document.getElementById('status');
-    if (!container) return;
+    if (container instanceof HTMLDivElement === false) return;
 
     container.className = type;
 
-    const clone = document.querySelector('#status-message').content.cloneNode(true);
-    clone.querySelector('.message').innerHTML = message;
+    const statusEl = document.querySelector('#status-message')
+
+    if (statusEl instanceof HTMLTemplateElement === false) return;
+
+    container.replaceChildren(statusEl.content.cloneNode(true));
+    const messageEl = container.querySelector('.message')
+    if (messageEl instanceof HTMLElement === false) return;
+    messageEl.innerHTML = message;
 
     let icon = '';
     if (type === 'fail') icon = 'skull';
     if (type === 'success') icon = 'star';
     if (type === 'start') icon = 'wait';
-    clone.querySelector('.icon use').setAttribute('xlink:href', `#icon-${icon}`);
 
-    container.replaceChildren(clone);
+    container.querySelector('.icon use')?.setAttribute('xlink:href', `#icon-${icon}`);
 }
 
-async function runTrigger(node) {
+/**
+ * @param {HTMLAnchorElement} el
+ */
+async function runTrigger(el) {
     let eventName = 'app:fail';
     let result = 'Could not connect to server';
     let status = 0;
@@ -134,11 +149,11 @@ async function runTrigger(node) {
     let locked = false;
 
     try {
-        const response = await fetch(node.href, { method: 'POST' });
+        const response = await fetch(el.href, { method: 'POST' });
         if (response.ok) {
             eventName = 'app:success';
-            state = response.headers.get("X-Keys-State");
-            locked = Boolean(Number.parseInt(response.headers.get("X-Keys-Locked"), 10) || 0);
+            state = response.headers.get("X-Keys-State") || "";
+            locked = Boolean(Number.parseInt(response.headers.get("X-Keys-Locked") || "", 10) || 0);
         }
 
         if (response.headers.get("Content-Type") === "text/html") {
@@ -153,17 +168,20 @@ async function runTrigger(node) {
         status = response.status;
     } finally {
         const event = new CustomEvent(eventName, {
-            detail: { node, status, result, locked }
+            detail: { node: el, status, result, locked }
         });
         window.dispatchEvent(event);
 
         if (locked) {
-            document.getElementById('keys').classList.add('locked');
-            document.getElementById('config-locked').classList.add('locked');
+            document.getElementById('keys')?.classList.add('locked');
+            document.getElementById('config-locked')?.classList.add('locked');
         } else {
-            document.getElementById('keys').classList.remove('locked');
-            document.getElementById('config-locked').classList.remove('locked');
+            document.getElementById('keys')?.classList.remove('locked');
+            document.getElementById('config-locked')?.classList.remove('locked');
         }
-        node.querySelector('.state').textContent = state;
+        const stateEl = el.querySelector('.state');
+        if (stateEl) {
+            stateEl.textContent = state;
+        }
     }
 }
