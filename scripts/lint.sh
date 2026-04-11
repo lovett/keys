@@ -6,6 +6,7 @@ cd "$(dirname "$0")/../"
 
 lint_js() {
     biome lint internal/asset/assets/keys.js
+    tsc
 }
 
 lint_go() {
