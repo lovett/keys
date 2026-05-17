@@ -38,7 +38,7 @@ func TestKey(cfg *config.Config) {
 	}
 
 	log.Print("Press a key to see its details. Control-c to cancel.\n\n")
-	cfg.EnableKeyTestMode()
+	cfg.Mode = config.KeyTestMode
 	device.Listen(cfg)
 }
 

@@ -28,19 +28,13 @@ func TestConfigFileValidity(t *testing.T) {
 	}
 }
 
-func TestEnableKeyTestMode(t *testing.T) {
+func TestDefaultMode(t *testing.T) {
 	cfg, err := configFromFixture(t, "empty.ini")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if cfg.Mode != NormalMode {
-		t.Error("config did not start in normal mode")
-	}
-
-	cfg.EnableKeyTestMode()
-
-	if cfg.Mode != KeyTestMode {
-		t.Error("config mode did not change")
+		t.Fatal("config did not start in normal mode")
 	}
 }

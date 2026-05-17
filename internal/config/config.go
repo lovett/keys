@@ -38,7 +38,3 @@ func NewConfig(configFile string) (*Config, error) {
 
 	return &cfg, nil
 }
-
-func (c *Config) EnableKeyTestMode() {
-	c.Mode = KeyTestMode
-}
