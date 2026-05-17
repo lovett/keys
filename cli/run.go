@@ -20,7 +20,7 @@ func Run(stdout io.Writer, stderr io.Writer) int {
 	versionFlag := flag.Bool("version", false, "Application version")
 	configFlag := flag.String("config", filepath.Join(configDir, "keys.ini"), "Configuration file")
 
-	flag.Usage = topUsage
+	flag.Usage = usage
 	flag.Parse()
 
 	if *versionFlag {
@@ -56,23 +56,33 @@ func Run(stdout io.Writer, stderr io.Writer) int {
 	}
 }
 
-func topUsage() {
-	fmt.Print(`Use a regular keyboard as a macro pad to run arbitrary commands headlessly.
+func usage() {
+	exe := filepath.Base(os.Args[0])
 
-Commands:
+	fmt.Printf(`Trigger shell commands from keyboard input.
+
+Usage
+  %s [COMMAND]
+
+Commands
   select keyboard
         Choose which physical keyboard to use for input.
+
   start
-        Launch the webserver and keyboard listener. Add --help for additional options.
+        Launch the webserver and listen for keyboard input.
+        Add --help for additional options.
+
   setup
-        Install a startup service. Linux/systemd only.
+        Install a systemd startup service.
+
   test key
-        Test mode to see the name of a pressed key.
+        Run in test mode to see the name of a pressed key.
+
   test sound
-        Test mode to see if sound output works.
+        Run in test mode to see if sound works.
 
 Options:
-`)
+`, exe)
 
 	flag.PrintDefaults()
 }
