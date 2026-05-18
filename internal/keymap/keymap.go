@@ -91,7 +91,7 @@ func (km *Keymap) FindKey(target string) *Key {
 		return key
 	}
 
-	key := km.findKeyByName(target)
+	key := km.FindKeyByName(target)
 	if key == nil {
 		key = km.findKeyByPhysicalKey(target)
 	}
@@ -100,7 +100,7 @@ func (km *Keymap) FindKey(target string) *Key {
 	return key
 }
 
-func (km *Keymap) findKeyByName(name string) *Key {
+func (km *Keymap) FindKeyByName(name string) *Key {
 	section, err := km.Content.GetSection(name)
 	if err != nil {
 		return nil

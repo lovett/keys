@@ -36,7 +36,7 @@ func Serve(cfg *config.Config, port int) {
 	mux.HandleFunc("GET /openapi.yaml", s.openapiHandler)
 	mux.HandleFunc("GET /version", s.versionHandler)
 	mux.HandleFunc("POST /edit", s.saveHandler)
-	mux.HandleFunc("POST /trigger/{name}", s.triggerHandler)
+	mux.HandleFunc("POST /trigger/{key}", s.triggerHandler)
 	mux.HandleFunc("GET /util/sh", s.shellHandler)
 	log.Printf("Serving on %s and available from %s", s.ServerAddress, cfg.PublicUrl)
 	log.Printf("Config file is %s", cfg.Keymap.Filename)
@@ -108,13 +108,13 @@ func (s *Server) keymapTextWriter(w http.ResponseWriter, r *http.Request) {
 	var output bytes.Buffer
 
 	query := r.URL.Query()
-	label := strings.ToLower(query.Get("label"))
+	name := strings.ToLower(query.Get("name"))
 	command := strings.ToLower(query.Get("command"))
-	keyboardKey := strings.ToLower(query.Get("key"))
+	physicalKey := strings.ToLower(query.Get("key"))
 
 	funcMap := texttemplate.FuncMap{
 		"queryMatch": func(k keymap.Key) bool {
-			if label != "" && !k.MatchesName(label) {
+			if name != "" && !k.MatchesName(name) {
 				return false
 			}
 
@@ -122,7 +122,7 @@ func (s *Server) keymapTextWriter(w http.ResponseWriter, r *http.Request) {
 				return false
 			}
 
-			if keyboardKey != "" && !k.MatchesPhysicalKey(keyboardKey) {
+			if physicalKey != "" && !k.MatchesPhysicalKey(physicalKey) {
 				return false
 			}
 
@@ -276,7 +276,12 @@ func (s *Server) maybePlaySound(name sound.Name) {
 }
 
 func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
-	key := s.Config.Keymap.FindKey(r.PathValue("name"))
+	key := s.Config.Keymap.FindKey(r.PathValue("key"))
+
+	if key == nil {
+		key = s.Config.Keymap.FindKeyByName(r.PathValue("key"))
+	}
+
 	if key == nil {
 		s.maybePlaySound(sound.Error)
 		http.NotFound(w, r)
