@@ -11,6 +11,10 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 case "${1:-}" in
+    --version)
+        echo "$VERSION"
+        exit
+        ;;
     list)
         case "${2:-}" in
             "")
@@ -35,10 +39,6 @@ case "${1:-}" in
             default)
                 echo "Key not specified." >%2
                 exit 1
-                ;;
-            --version)
-                echo "$VERSION"
-                exit
                 ;;
             *)
                 curl -X POST -H "Accept: text/plain" "$REMOTE_URL/trigger/$2"
