@@ -3,7 +3,6 @@ package device
 import (
 	"fmt"
 	"keys/internal/config"
-	"keys/internal/keymap"
 	"log"
 	"net/http"
 	"net/url"
@@ -22,7 +21,7 @@ type DeviceEvent struct {
 	Event      *evdev.InputEvent
 }
 
-func Listen(cfg *config.Config) {
+func Listen(cfg *config.Config, callback func(*DeviceEvent)) {
 	var (
 		u   *user.User
 		g   *user.Group
@@ -46,7 +45,7 @@ func Listen(cfg *config.Config) {
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go worker(c, cfg)
+	go worker(c, cfg, callback)
 
 	devices, err := ListKeyboards()
 	if err != nil {
@@ -68,7 +67,7 @@ func Listen(cfg *config.Config) {
 		wg.Wait()
 	} else {
 		time.Sleep(time.Duration(10 * time.Second))
-		Listen(cfg)
+		Listen(cfg, nil)
 	}
 }
 
@@ -76,18 +75,18 @@ func ListKeyboards() ([]string, error) {
 	return filepath.Glob("/dev/input/by-id/*-event-kbd")
 }
 
-func worker(deviceEvents <-chan *DeviceEvent, cfg *config.Config) {
+func worker(deviceEvents <-chan *DeviceEvent, cfg *config.Config, callback func(*DeviceEvent)) {
 	var timer *time.Timer
 	keyBuffer := []string{}
 
-	callback := func() {
+	defaultCallback := func() {
 		trigger(keyBuffer, cfg)
 		keyBuffer = keyBuffer[:0]
 	}
 
 	for deviceEvent := range deviceEvents {
-		if cfg.Mode == config.KeyTestMode {
-			echo(deviceEvent, cfg)
+		if callback != nil {
+			callback(deviceEvent)
 			return
 		}
 
@@ -106,32 +105,11 @@ func worker(deviceEvents <-chan *DeviceEvent, cfg *config.Config) {
 
 		bufferString := strings.Join(keyBuffer, "")
 		if cfg.Keymap.IsPhysicalKeyPrefix(bufferString) {
-			timer = time.AfterFunc(500*time.Millisecond, callback)
+			timer = time.AfterFunc(500*time.Millisecond, defaultCallback)
 		} else {
-			callback()
+			defaultCallback()
 		}
 	}
-}
-
-func echo(deviceEvent *DeviceEvent, cfg *config.Config) string {
-	codeName := evdev.CodeName(deviceEvent.Event.Type, deviceEvent.Event.Code)
-	translatedName := keymap.Translate(codeName)
-
-	key := cfg.Keymap.FindKey(translatedName)
-	var mappedKey string
-	if key != nil {
-		mappedKey = key.Name
-	} else {
-		mappedKey = "none"
-	}
-
-	return fmt.Sprintf(`
-
-Code: %s
-From: %s
-Translated to: %s
-Mapped to: %s
-`, codeName, deviceEvent.DevicePath, translatedName, mappedKey)
 }
 
 func trigger(keyBuffer []string, cfg *config.Config) {
@@ -190,7 +168,7 @@ func open(path string, c chan *DeviceEvent, wg *sync.WaitGroup, cfg *config.Conf
 		event, err := device.ReadOne()
 		if err != nil {
 			log.Fatalf("unable to read input: %s", err)
-			Listen(cfg)
+			Listen(cfg, nil)
 			return
 		}
 

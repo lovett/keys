@@ -5,18 +5,10 @@ import (
 	"os"
 )
 
-type AppMode int
-
-const (
-	NormalMode AppMode = iota
-	KeyTestMode
-)
-
 type Config struct {
 	KeyboardFound  bool
 	KeyboardLocked bool
 	Keymap         *keymap.Keymap
-	Mode           AppMode
 	PublicUrl      string
 }
 
@@ -33,7 +25,6 @@ func NewConfig(configFile string) (*Config, error) {
 
 	cfg := Config{
 		Keymap: keymap,
-		Mode:   NormalMode,
 	}
 
 	return &cfg, nil

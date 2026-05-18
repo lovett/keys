@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"keys/internal/config"
 	"keys/internal/device"
+	"keys/internal/keymap"
 	"keys/internal/sound"
 	"log"
 	"os"
+
+	"github.com/holoplot/go-evdev"
 )
 
 func Test(cfg *config.Config, args []string) int {
@@ -38,8 +41,12 @@ func TestKey(cfg *config.Config) {
 	}
 
 	log.Print("Press a key to see its details. Control-c to cancel.\n\n")
-	cfg.Mode = config.KeyTestMode
-	device.Listen(cfg)
+
+	callback := func(e *device.DeviceEvent) {
+		echo(e, cfg)
+	}
+
+	device.Listen(cfg, callback)
 }
 
 func TestSound() {
@@ -70,4 +77,25 @@ func TestSound() {
 			log.Fatal(err)
 		}
 	}
+}
+
+func echo(deviceEvent *device.DeviceEvent, cfg *config.Config) string {
+	codeName := evdev.CodeName(deviceEvent.Event.Type, deviceEvent.Event.Code)
+	translatedName := keymap.Translate(codeName)
+
+	key := cfg.Keymap.FindKey(translatedName)
+	var mappedKey string
+	if key != nil {
+		mappedKey = key.Name
+	} else {
+		mappedKey = "none"
+	}
+
+	return fmt.Sprintf(`
+
+Code: %s
+From: %s
+Translated to: %s
+Mapped to: %s
+`, codeName, deviceEvent.DevicePath, translatedName, mappedKey)
 }

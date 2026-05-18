@@ -27,14 +27,3 @@ func TestConfigFileValidity(t *testing.T) {
 		t.Error("malformed config file was not rejected")
 	}
 }
-
-func TestDefaultMode(t *testing.T) {
-	cfg, err := configFromFixture(t, "empty.ini")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if cfg.Mode != NormalMode {
-		t.Fatal("config did not start in normal mode")
-	}
-}

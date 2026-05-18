@@ -26,7 +26,7 @@ func Start(cfg *config.Config, args []string) int {
 	cfg.PublicUrl = fmt.Sprintf("http://localhost:%d", *port)
 
 	if strings.Contains(*inputs, "keyboard") {
-		go device.Listen(cfg)
+		go device.Listen(cfg, nil)
 	}
 
 	if strings.Contains(*inputs, "browser") {
