@@ -55,6 +55,8 @@ case "${1:-}" in
         echo "  list --label VALUE: Show keys whose label starts with VALUE." >&2
         echo "  list --command VALUE: Show keys whose command contains VALUE" >&2
         echo "  list --key VALUE: Show keys whose name contains VALUE" >&2
+        echo "  --version: application version (both server and client)" >&2
+        echo "  --help: this message" >&2
         exit 1
         ;;
 esac

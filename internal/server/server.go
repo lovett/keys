@@ -186,7 +186,7 @@ func (s *Server) shellHandler(w http.ResponseWriter, r *http.Request) {
 		Version   string
 	}{
 		PublicUrl: s.Config.PublicUrl,
-		Version:   string(asset.ReadVersion()),
+		Version:   strings.TrimSpace(string(asset.ReadVersion())),
 	}
 
 	if err := tmpl.ExecuteTemplate(&output, "keys.sh", data); err != nil {
