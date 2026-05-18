@@ -180,7 +180,16 @@ func (s *Server) shellHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var output bytes.Buffer
-	if err := tmpl.ExecuteTemplate(&output, "keys.sh", s.Config); err != nil {
+
+	data := struct {
+		PublicUrl string
+		Version   string
+	}{
+		PublicUrl: s.Config.PublicUrl,
+		Version:   string(asset.ReadVersion()),
+	}
+
+	if err := tmpl.ExecuteTemplate(&output, "keys.sh", data); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		if _, err = w.Write([]byte(err.Error())); err != nil {
 			log.Fatalf("unable to write error response body: %v", err)

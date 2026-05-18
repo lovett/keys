@@ -3,6 +3,7 @@
 set -eu
 
 REMOTE_URL="{{ .PublicUrl }}"
+VERSION="{{ .Version }}"
 
 if ! command -v curl >/dev/null 2>&1; then
     echo "Curl is not available. Cannot run.";
@@ -34,6 +35,10 @@ case "${1:-}" in
             default)
                 echo "Key not specified." >%2
                 exit 1
+                ;;
+            --version)
+                echo "$VERSION"
+                exit
                 ;;
             *)
                 curl -X POST -H "Accept: text/plain" "$REMOTE_URL/trigger/$2"
