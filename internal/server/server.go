@@ -99,8 +99,9 @@ func (s *Server) keymapHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Header.Get("Accept") == "text/plain" {
 		s.keymapTextWriter(w, r)
+	} else {
+		s.keymapHtmlWriter(w)
 	}
-	s.keymapHtmlWriter(w)
 }
 
 func (s *Server) keymapTextWriter(w http.ResponseWriter, r *http.Request) {
