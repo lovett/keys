@@ -55,7 +55,8 @@ case "${1:-}" in
         exit 1
         ;;
     *)
-        curl -X POST -H "Accept: text/plain" "$REMOTE_URL/trigger/$1"
+        key=$(echo "$@" | tr " " "-")
+        curl -X POST -H "Accept: text/plain" "$REMOTE_URL/trigger/$key"
         exit
         ;;
 esac
