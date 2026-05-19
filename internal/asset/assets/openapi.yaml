@@ -80,10 +80,10 @@ paths:
                                 type: string
                 "405":
                     description: Unknown key.
-    /util/sh:
+    /util/keys.sh:
         get:
             summary: Shell script client
-            description: Trigger keypresses from the command line.
+            description: Trigger keys from the command line.
             tags:
                 - util
             operationId: util-sh
