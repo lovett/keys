@@ -181,7 +181,7 @@ func (s *Server) shellHandler(w http.ResponseWriter, r *http.Request) {
 
 	var output bytes.Buffer
 
-	data := struct {
+	templateVars := struct {
 		PublicUrl string
 		Version   string
 	}{
@@ -189,7 +189,7 @@ func (s *Server) shellHandler(w http.ResponseWriter, r *http.Request) {
 		Version:   strings.TrimSpace(string(asset.ReadVersion())),
 	}
 
-	if err := tmpl.ExecuteTemplate(&output, "keys.sh", data); err != nil {
+	if err := tmpl.ExecuteTemplate(&output, "keys.sh", templateVars); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		if _, err = w.Write([]byte(err.Error())); err != nil {
 			log.Fatalf("unable to write error response body: %v", err)
@@ -356,8 +356,16 @@ func (s *Server) openapiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	templateVars := struct {
+		PublicUrl string
+		Version   string
+	}{
+		PublicUrl: s.Config.PublicUrl,
+		Version:   strings.TrimSpace(string(asset.ReadVersion())),
+	}
+
 	var output bytes.Buffer
-	if err := tmpl.ExecuteTemplate(&output, "openapi.yaml", s.Config); err != nil {
+	if err := tmpl.ExecuteTemplate(&output, "openapi.yaml", templateVars); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		if _, err = w.Write([]byte(err.Error())); err != nil {
 			log.Fatalf("unable to write error response body: %v", err)

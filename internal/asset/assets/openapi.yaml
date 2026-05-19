@@ -3,7 +3,7 @@ openapi: "3.1.2"
 info:
     title: "Keys"
     description: Keys provides HTTP endpoints that can be called directly when browser or keyboard input isn't convenient.
-    version: "1.0.0"
+    version: "{{ .Version }}"
 servers:
     - url: "{{ .PublicUrl }}"
 tags:
