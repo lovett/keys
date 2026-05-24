@@ -266,7 +266,7 @@ func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) maybePlaySound(name sound.Name) {
-	if s.Config.Keymap.SoundAllowed {
+	if !s.Config.Keymap.SoundAllowed {
 		return
 	}
 
