@@ -304,7 +304,6 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		stdout = []byte("Keyboard unlocked")
 		w.Header().Set("X-Keys-Locked", "0")
 	default:
-		s.maybePlaySound(sound.Tap)
 		stdout, err = key.RunCommand()
 		if err != nil {
 			s.maybePlaySound(sound.Error)

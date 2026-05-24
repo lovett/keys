@@ -53,7 +53,6 @@ func TestSound() {
 	sounds := map[string]sound.Name{
 		"Confirmation": sound.Confirmation,
 		"Error":        sound.Error,
-		"Tap":          sound.Tap,
 		"Lock":         sound.Lock,
 		"Unlock":       sound.Unlock,
 	}

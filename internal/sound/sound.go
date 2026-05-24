@@ -19,7 +19,6 @@ const (
 	Down
 	Lock
 	Unlock
-	Tap
 )
 
 var (
@@ -30,7 +29,6 @@ var (
 func init() {
 	sounds[Confirmation] = "assets/hero_simple-celebration-02.ogg"
 	sounds[Error] = "assets/alert_error-03.ogg"
-	sounds[Tap] = "assets/navigation_forward-selection-minimal.ogg"
 	sounds[Lock] = "assets/ui_lock.ogg"
 	sounds[Unlock] = "assets/ui_unlock.ogg"
 }
