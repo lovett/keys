@@ -28,6 +28,11 @@ func Select(cfg *config.Config, args []string) int {
 
 		cfg.Keymap.SetKeyboard(*keyboard)
 
+		err = cfg.Keymap.Write()
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -58,8 +63,6 @@ func prompt() (*string, error) {
 	for i, device := range devices {
 		fmt.Printf("%2d. %s\n", i+1, device)
 	}
-
-	fmt.Println("")
 
 	reader := bufio.NewReader(os.Stdin)
 	answer, _ := reader.ReadString('\n')
