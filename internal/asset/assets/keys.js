@@ -26,6 +26,12 @@ window.addEventListener('keyup', (e) => {
         return;
     }
 
+    if (e.ctrlKey || e.altKey) {
+        return;
+    }
+
+    if (['Control', 'Alt', 'Tab'].indexOf(e.key) > -1) return;
+
     if (e.key === 'E') {
         const node = document.querySelector('form.edit');
         if (node instanceof HTMLFormElement) node.submit();
