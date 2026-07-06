@@ -4,7 +4,7 @@ set -eu
 
 cd "$(dirname "$0")/../"
 
-VERSION=$(date +"%Y.%m.%d+%H:%M:%S")
+VERSION=$(date +"%Y%m.%d.%H%M")
 VERSION_FILE="internal/asset/assets/version.txt"
 
 echo "$VERSION" > "$VERSION_FILE"
