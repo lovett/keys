@@ -2,16 +2,10 @@
 
 set -eu
 
-cd "$(dirname "$0")/../"
+PACKAGES="alsa-lib-devel golangci-lint"
 
-case "${1:-default}" in
-    --help)
-        echo "Install required system packages."
-        ;;
-    default)
-        sudo dnf install alsa-lib-devel golangci-lint
-        ;;
-    *)
-        echo "Unknown argument." >&2
-        ;;
-esac
+# shellcheck disable=SC2086 # because splitting of PACKAGES is intentional.
+if ! rpm -q $PACKAGES >/dev/null 2>&1; then
+    echo "Installing packages..."
+    sudo dnf install $PACKAGES
+fi
