@@ -2,7 +2,7 @@
 
 set -eu
 
-PACKAGES="alsa-lib-devel golangci-lint"
+PACKAGES="alsa-lib-devel golangci-lint ShellCheck entr"
 
 # shellcheck disable=SC2086 # because splitting of PACKAGES is intentional.
 if ! rpm -q $PACKAGES >/dev/null 2>&1; then
