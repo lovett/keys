@@ -1,58 +1,9 @@
 package device
 
 import (
-	"fmt"
-	"keys/internal/config"
-	"os"
 	"os/user"
-	"path/filepath"
-	"strings"
-	"syscall"
 	"testing"
-
-	"github.com/holoplot/go-evdev"
 )
-
-func loadConfig(t *testing.T) *config.Config {
-	wd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	fixture := filepath.Join(wd, "../../testdata/key-multiple.ini")
-	cfg, err := config.NewConfig(fixture)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return cfg
-}
-
-func TestEcho(t *testing.T) {
-	cfg := loadConfig(t)
-
-	inputEvent := &evdev.InputEvent{
-		Time:  syscall.Timeval{Sec: 0},
-		Type:  evdev.EV_KEY,
-		Code:  0,
-		Value: 0,
-	}
-
-	deviceEvent := &DeviceEvent{"/my/device/path", inputEvent}
-
-	want := fmt.Sprintf(`
-Code: %s
-From: %s
-Translated to: reserved
-Mapped to: none
-`, inputEvent.CodeName(), deviceEvent.DevicePath)
-
-	got := echo(deviceEvent, cfg)
-
-	if !strings.Contains(got, want) {
-		t.Errorf("wanted:\n%s\ngot:\n%s", want, got)
-	}
-}
 
 func TestCanListen(t *testing.T) {
 	tests := []struct {

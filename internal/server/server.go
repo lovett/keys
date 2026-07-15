@@ -54,7 +54,13 @@ func Serve(cfg *config.Config, port int) {
 
 func requestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s", r.Method, r.RequestURI)
+		method := strings.ReplaceAll(r.Method, "\n", "")
+		method = strings.ReplaceAll(method, "\r", "")
+
+		uri := strings.ReplaceAll(r.RequestURI, "\n", "")
+		uri = strings.ReplaceAll(uri, "\r", "")
+
+		log.Printf("%s %s", method, uri)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -219,6 +225,8 @@ func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", asset.MimeType)
 	w.Header().Set("ETag", asset.Hash)
+
+	// #nosec G705 # because asset commes from application
 	if _, err := w.Write(asset.Bytes); err != nil {
 		log.Fatalf("unable to write asset body: %v", err)
 	}
@@ -247,6 +255,10 @@ func (s *Server) editHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) saveHandler(w http.ResponseWriter, r *http.Request) {
+	const maxUploadSize = 1000000 // 1MB
+
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+
 	err := r.ParseForm()
 	if err != nil {
 		wrappedError := fmt.Errorf("error during form parsing: %w", err)
@@ -331,6 +343,7 @@ func (s *Server) triggerHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 	}
 
+	// #nosec G705 # because stdout comes from the command specified in the configuration
 	if _, err := w.Write(stdout); err != nil {
 		log.Fatalf("unable to write stdout response body: %v", err)
 	}

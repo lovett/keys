@@ -2,7 +2,9 @@
 
 set -eu
 
-. "$(dirname "$0")/vars.sh"
+cd "$(dirname "$0")/../"
+
+. "scripts/vars.sh"
 
 PACKAGES="alsa-lib-devel golangci-lint ShellCheck entr jq podman"
 

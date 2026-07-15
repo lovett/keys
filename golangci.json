@@ -1,0 +1,26 @@
+{
+  "version": "2",
+  "linters": {
+    "enable": [
+      "gosec"
+    ],
+    "settings": {
+      "errcheck": {
+        "exclude-functions": [
+          "(io.Closer).Close",
+          "(*os.File).Close",
+          "fmt.Fprintf",
+          "fmt.Fprint",
+          "fmt.Fprintln",
+          "os.Remove"
+        ]
+      },
+      "gosec": {
+        "excludes": [
+          "G104",
+          "G304"
+        ]
+      }
+    }
+  }
+}
