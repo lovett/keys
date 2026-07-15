@@ -2,15 +2,27 @@
 
 set -eu
 
+. "$(dirname "$0")/vars.sh"
+
 cd "$(dirname "$0")/../"
 
 lint_js() {
-    biome lint internal/asset/assets/keys.js
-    tsc
+    KEYS_JS="internal/asset/assets/keys.js"
+	$BIOME lint "$KEYS_JS"
+    $BUN x tsc --noEmit "$KEYS_JS"
 }
 
 lint_go() {
     golangci-lint --enable=gosec run
+}
+
+lint_json() {
+    if command -v "jq" > /dev/null 2>&1; then
+        jq empty < tsconfig.json
+    else
+        echo "jq is not installed"
+        exit 1
+    fi
 }
 
 lint_openapi_watch() {
@@ -51,6 +63,7 @@ case "${1-all}" in
     all)
         lint_go
         lint_js
+        lint_json
         lint_openapi
         lint_sh
         ;;
