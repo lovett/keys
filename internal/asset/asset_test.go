@@ -1,6 +1,7 @@
 package asset
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -57,10 +58,10 @@ func TestAssetExistence(t *testing.T) {
 func TestVersionDefault(t *testing.T) {
 	t.Cleanup(clearCache)
 
-	b := ReadVersion()
+	version := string(ReadVersion())
 
-	if string(b) != "unknown" {
-		t.Errorf("Unexpected default value for version asset: %v", b)
+	if strings.TrimSpace(version) != "dev" {
+		t.Errorf("Unexpected default value for version asset: '%v'", version)
 	}
 }
 

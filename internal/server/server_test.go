@@ -249,8 +249,8 @@ func TestTriggerHandler(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		req := httptest.NewRequest("POST", "/", nil)
-		req.SetPathValue("name", tt.trigger)
+		req := httptest.NewRequest("POST", "/trigger", nil)
+		req.SetPathValue("key", tt.trigger)
 
 		rr := httptest.NewRecorder()
 		handler := http.HandlerFunc(server.triggerHandler)
@@ -272,8 +272,8 @@ func TestTriggerLock(t *testing.T) {
 	log.SetOutput(io.Discard)
 
 	server := serverFixture(t, "key-roll-lock.ini")
-	req := httptest.NewRequest("POST", "/", nil)
-	req.SetPathValue("name", "test")
+	req := httptest.NewRequest("POST", "/trigger", nil)
+	req.SetPathValue("key", "test")
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(server.triggerHandler)
 	handler.ServeHTTP(rr, req)
@@ -292,8 +292,8 @@ func TestTriggerLock(t *testing.T) {
 		t.Errorf("Unexpected body from lock request: '%s'", body)
 	}
 
-	req2 := httptest.NewRequest("POST", "/", nil)
-	req2.SetPathValue("name", "test")
+	req2 := httptest.NewRequest("POST", "/trigger", nil)
+	req2.SetPathValue("key", "test")
 	rr2 := httptest.NewRecorder()
 	handler.ServeHTTP(rr2, req2)
 	failIfServerError(t, rr)
@@ -329,8 +329,8 @@ func TestTriggerToggle(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		req := httptest.NewRequest("POST", "/", nil)
-		req.SetPathValue("name", "test")
+		req := httptest.NewRequest("POST", "/trigger", nil)
+		req.SetPathValue("key", "test")
 		rr := httptest.NewRecorder()
 		handler := http.HandlerFunc(server.triggerHandler)
 		handler.ServeHTTP(rr, req)
