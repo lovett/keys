@@ -2,7 +2,7 @@
 
 set -eu
 
-COVERAGE_DIR="/srv/www/coverage"
+COVERAGE_DIR="${COVERAGE_DIR-/srv/www/coverage}"
 
 # Run from repository root
 cd "$(dirname "$0")/../"
