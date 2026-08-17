@@ -27,10 +27,10 @@ var (
 )
 
 func init() {
-	sounds[Confirmation] = "assets/hero_simple-celebration-02.ogg"
-	sounds[Error] = "assets/alert_error-03.ogg"
-	sounds[Lock] = "assets/ui_lock.ogg"
-	sounds[Unlock] = "assets/ui_unlock.ogg"
+	sounds[Confirmation] = "assets/select.ogg"
+	sounds[Error] = "assets/lock.ogg"
+	sounds[Lock] = "assets/collapse.ogg"
+	sounds[Unlock] = "assets/expand.ogg"
 }
 
 func load(name Name) error {

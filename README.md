@@ -44,4 +44,4 @@ Run `scripts/build.sh` to compile the application.
 
 ## Attribution
 
-This project uses icons from [Majesticons](https://github.com/halfmage/majesticons) and sound files from [Google Material Design v2](https://m2.material.io/design/sound/sound-resources.html).
+This project uses icons from [Majesticons](https://github.com/halfmage/majesticons) and sound effects from [uisfx](https://github.com/romainsimon/uisfx)
