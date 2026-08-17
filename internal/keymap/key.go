@@ -47,6 +47,13 @@ func NewKeyFromSection(s *ini.Section, row string) *Key {
 	return k
 }
 
+// Media keys might have weird names.
+// For example, the mute button on an Apple keyboard is mute/min_interesting
+func (k *Key) PhysicalKeyForDisplay() string {
+	before, _, _ := strings.Cut(k.PhysicalKey, "/")
+	return before
+}
+
 func (k *Key) CanLock() bool {
 	return k.CurrentCommand() == "lock" || k.CurrentCommand() == "unlock"
 }

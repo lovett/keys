@@ -35,7 +35,7 @@
             <a class="key" data-keypress="{{ .PhysicalKey }}" href="/trigger/{{ .Name }}" {{ if .CanLock }}data-lock-key{{end}}>
                 <div class="key-label">{{ .Name }}</div>
                 <div class="state">{{ .State }}</div>
-                <div class="name icon-with-label"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> <span class="label">{{ .PhysicalKey }}</span></div>
+                <div class="name icon-with-label"><svg class="icon"><use xlink:href="#icon-keyboard"></use></svg> <span class="label">{{ .PhysicalKeyForDisplay }}</span></div>
             </a>
         </li>
         {{- else -}}
