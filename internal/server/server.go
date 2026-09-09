@@ -10,6 +10,7 @@ import (
 	"keys/internal/sound"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	texttemplate "text/template"
 	"time"
@@ -216,14 +217,13 @@ func (s *Server) assetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wantedHash := r.Header.Get("If-None-Match")
-
-	if asset.HashMatch(wantedHash) {
+	if strings.HasPrefix(r.Header.Get("If-None-Match"), asset.Hash) {
 		w.WriteHeader(http.StatusNotModified)
 		return
 	}
 
 	w.Header().Set("Content-Type", asset.MimeType)
+	w.Header().Set("Content-Length", strconv.Itoa(len(asset.Bytes)))
 	w.Header().Set("ETag", asset.Hash)
 
 	// #nosec G705 # because asset commes from application

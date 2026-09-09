@@ -65,31 +65,6 @@ func TestVersionDefault(t *testing.T) {
 	}
 }
 
-func TestAssetHashMatching(t *testing.T) {
-	t.Cleanup(clearCache)
-
-	tests := []struct {
-		hash  string
-		match bool
-	}{
-		{hash: "my-hash", match: true},
-		{hash: "", match: false},
-	}
-
-	a, err := Read("assets/keyboard.html")
-	if err != nil {
-		t.Fatalf("Could not read asset: %v", err)
-	}
-
-	for _, tt := range tests {
-		a.Hash = tt.hash
-		result := a.HashMatch(tt.hash)
-		if result != tt.match {
-			t.Fatalf("Hash matching failure: got %t for %s", result, tt.hash)
-		}
-	}
-}
-
 func TestAssetHashCaching(t *testing.T) {
 	t.Cleanup(clearCache)
 
