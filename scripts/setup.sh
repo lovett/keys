@@ -2,26 +2,20 @@
 
 set -eu
 
-cd "$(dirname "$0")/../"
-
-. "scripts/vars.sh"
-
-PACKAGES="alsa-lib-devel golangci-lint ShellCheck entr jq podman"
-
-# shellcheck disable=SC2086 # because splitting of PACKAGES is intentional.
-if ! rpm -q $PACKAGES >/dev/null 2>&1; then
-    echo "Installing packages..."
-    sudo dnf --assumeyes install $PACKAGES
+# Fedora
+if command -v dnf >/dev/null 2>&1; then
+    sudo dnf --assumeyes install \
+         alsa-lib-devel golangci-lint jq ShellCheck
+    exit
 fi
 
-if ! podman image exists "$BUN_IMAGE"; then
-    echo "Pulling $BUN_IMAGE"
-    podman pull -q "$BUN_IMAGE"
+# FreeBSD
+if command -v pkg >/dev/null 2>&1; then
+    # No package available for biome
+    doas pkg install --yes \
+         pkgconf golangci-lint jq hs-ShellCheck py312-sqlfluff
+    exit
 fi
 
-if ! podman image exists "$BIOME_IMAGE"; then
-    echo "Pulling $BIOME_IMAGE"
-    podman pull -q "$BIOME_IMAGE"
-fi
-
-$BUN install
+echo "No supported package manager found."
+exit 1

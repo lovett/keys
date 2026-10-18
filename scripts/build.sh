@@ -2,6 +2,7 @@
 
 set -eu
 
+# Run from repository root
 cd "$(dirname "$0")/../"
 
 # This value needs to work as a git tag.
