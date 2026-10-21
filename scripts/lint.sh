@@ -14,9 +14,7 @@ can_skip() {
     NAME="${3:-}"
 
     if [ -z "${CMD:-}" ]; then
-        RED=$(tput setaf 1)
-        NC=$(tput sgr0)
-        echo "${RED}Skipping $NAME because it is not available${NC}"
+        echo "Skipping $NAME because it is not available"
         echo ""
         return 0
     fi
