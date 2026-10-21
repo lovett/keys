@@ -5,7 +5,7 @@ set -eu
 
 # Fedora
 if command -v dnf >/dev/null 2>&1; then
-    PACKAGES="alsa-lib-devel golangci-lint jq ShellCheck"
+    PACKAGES="alsa-lib-devel golangci-lint ShellCheck"
 
     if ! rpm -q $PACKAGES >/dev/null 2>&1; then
         sudo dnf --assumeyes install $PACKAGES
@@ -16,7 +16,7 @@ fi
 
 # FreeBSD
 if command -v pkg >/dev/null 2>&1; then
-    PACKAGES="pkgconf golangci-lint jq hs-ShellCheck"
+    PACKAGES="pkgconf golangci-lint hs-ShellCheck"
 
     if ! pkg info -e $PACKAGES; then
         doas pkg install --yes $PACKAGES

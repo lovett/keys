@@ -52,8 +52,8 @@ lint_go() {
 
 lint_json() {
     can_skip ".json" "$BUN" "bun" && return
-    echo "Linting tsconfig.json with jq"
-    $BUN check tsconfig.json
+    echo "Linting json files with bun"
+    $BUN check ./*.json
     echo ""
 }
 
