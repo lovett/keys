@@ -6,8 +6,6 @@ cd "$(dirname "$0")/../"
 
 . "scripts/vars.sh"
 
-CHANGED_FILES=$(git status --porcelain)
-
 can_skip() {
     EXT="${1:-}"
     CMD="${2:-}"
@@ -34,13 +32,13 @@ can_skip() {
 }
 
 lint_js() {
-    can_skip ".js" "${BIOME:-}" "biome" && return
+    can_skip ".js" "$BIOME" "biome" && return
     echo "Linting js assets with biome"
     $BIOME lint internal/asset/assets/keys.js
 
-    echo "Linting js assets with tsc"
-    can_skip ".js" "${TSC:-}" "tsc" && return
-    $TSC --project .
+    echo "Linting js assets with bun"
+    can_skip ".js" "$BUN" "bun" && return
+    $BUN check
 
     echo ""
 }
@@ -53,13 +51,17 @@ lint_go() {
 }
 
 lint_json() {
-    can_skip ".json" "$JQ" "jq"&& return
+    can_skip ".json" "$BUN" "bun" && return
     echo "Linting tsconfig.json with jq"
-    $JQ empty < tsconfig.json
+    $BUN check tsconfig.json
     echo ""
 }
 
 lint_openapi() {
+    if [ -z "${VACUUM:-}" ]; then
+        echo "Skipping openapi linting"
+        return
+    fi
     $VACUUM
 }
 
@@ -68,6 +70,14 @@ lint_sh() {
     echo "Linting scripts with shellcheck"
     $SHELLCHECK scripts/*
     echo ""
+}
+
+lint_all() {
+    lint_go
+    lint_js
+    lint_json
+    lint_openapi
+    lint_sh
 }
 
 case "${1-all}" in
@@ -90,19 +100,10 @@ case "${1-all}" in
         lint_sh
         ;;
     all)
-        CHANGED_FILES=""
-        lint_go
-        lint_js
-        lint_json
-        lint_sh
+        lint_all
         ;;
     *)
-        lint_go
-        lint_js
-        lint_json
-        lint_openapi
-        lint_sh
-
-        echo "Unknown argument." >&2
+        CHANGED_FILES=$(git status --porcelain)
+        lint_all
         ;;
 esac
